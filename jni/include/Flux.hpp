@@ -33,7 +33,7 @@
 #define DEVICE_MITIGATION_FILE CONFIG_DIR "/device_mitigation.json"
 #define DEFAULT_CPU_GOV CONFIG_DIR "/default_cpu_gov"
 #define FLUX_GAMELIST CONFIG_DIR "/gamelist.json"
-#define SYSTEM_STATUS_FILE CONFIG_DIR "/system_status"
+#define SYNTHESIS_CORE_FILE CONFIG_DIR "/synthesis_core.json"
 
 #define MODULE_PROP MODPATH "/module.prop"
 #define MODULE_UPDATE MODPATH "/update"
