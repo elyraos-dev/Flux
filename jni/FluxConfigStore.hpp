@@ -1,0 +1,133 @@
+/*
+ * Copyright (C) 2024-2026 FebriCahyaa
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#pragma once
+
+#include <mutex>
+#include <optional>
+#include <string>
+#include <unordered_set>
+#include <vector>
+
+#include <rapidjson/document.h>
+
+#include <Flux.hpp>
+#include <FluxLog.hpp>
+
+class FluxConfigStore {
+public:
+    struct Preferences {
+        bool enforce_lite_mode = false;
+        bool use_device_mitigation = false;
+        bool disable_tweaks = false;
+        int log_level = 4;
+    };
+
+    struct CPUGovernor {
+        std::string balance;
+        std::string powersave;
+    };
+
+    struct ConfigData {
+        Preferences preferences;
+        CPUGovernor cpu_governor;
+    };
+
+    /**
+     * @brief Get singleton instance
+     */
+    static FluxConfigStore &get_instance() {
+        static FluxConfigStore instance;
+        return instance;
+    }
+
+    /**
+     * @brief Load configuration from file
+     * @param config_path Path to config file (defaults to CONFIG_FILE)
+     * @return true if loaded successfully, false otherwise
+     */
+    bool load_config(const std::string &config_path = CONFIG_FILE);
+
+    /**
+     * @brief Save current configuration to file
+     * @param config_path Optional custom path, uses loaded path by default
+     * @return true if saved successfully, false otherwise
+     */
+    bool save_config(const std::string &config_path = CONFIG_FILE);
+
+    /**
+     * @brief Get current configuration
+     */
+    ConfigData get_config() const;
+
+    /**
+     * @brief Get preferences
+     */
+    Preferences get_preferences() const;
+
+    /**
+     * @brief Get CPU governor settings
+     */
+    CPUGovernor get_cpu_governor() const;
+
+    /**
+     * @brief Update preferences
+     */
+    void set_preferences(const Preferences &prefs);
+
+    /**
+     * @brief Update CPU governor settings
+     */
+    void set_cpu_governor(const CPUGovernor &governor);
+
+    /**
+     * @brief Get config file path
+     */
+    std::string get_config_path() const;
+
+    /**
+     * @brief Reload configuration from disk
+     */
+    bool reload();
+
+private:
+    FluxConfigStore() = default;
+    ~FluxConfigStore() = default;
+
+    FluxConfigStore(const FluxConfigStore &) = delete;
+    FluxConfigStore &operator=(const FluxConfigStore &) = delete;
+
+    /**
+     * @brief Read default CPU governor from file
+     */
+    std::string read_default_cpu_governor() const;
+
+    /**
+     * @brief Create default configuration file
+     */
+    bool create_default_config();
+
+    /**
+     * @brief Parse JSON document into config structure
+     */
+    bool parse_config(const rapidjson::Document &doc);
+
+    mutable std::mutex mutex_;
+    ConfigData config_;
+    std::string config_path_ = CONFIG_FILE;
+};
+
+#define config_store FluxConfigStore::get_instance()

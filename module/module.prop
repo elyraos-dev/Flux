@@ -1,0 +1,9 @@
+id=flux
+name=Flux Tweaks
+version=
+versionCode=
+author=FebriCahyaa
+description=Adaptive gaming and battery optimization framework.
+updateJson=https://encore.rem01gaming.dev/api/update.json
+banner=banner.webp
+webuiIcon=webroot/icon.webp

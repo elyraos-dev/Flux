@@ -1,0 +1,258 @@
+#
+# Copyright (C) 2024-2026 FebriCahyaa
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+# shellcheck disable=SC1091,SC2034,SC2317
+SKIPUNZIP=1
+SOC=0
+
+MODULE_CONFIG="/data/adb/.config/flux"
+
+make_node() {
+	[ ! -f "$2" ] && echo "$1" >"$2"
+}
+
+make_dir() {
+	[ ! -d "$1" ] && mkdir -p "$1"
+}
+
+abort_unsupported_arch() {
+	ui_print "*********************************************************"
+	ui_print "! Unsupported Architecture: $ARCH"
+	ui_print "! Your CPU architecture is not supported by Flux Tweaks."
+	abort "*********************************************************"
+}
+
+abort_corrupted() {
+	ui_print "*********************************************************"
+	ui_print "! Unable to extract verify.sh!"
+	ui_print "! Installation aborted. The module may be corrupted."
+	ui_print "! Please re-download and try again."
+	abort "*********************************************************"
+}
+
+abort_gamelist_error() {
+	ui_print "*********************************************************"
+	ui_print "! Failed to initialize gamelist!"
+	ui_print "! Installation aborted."
+	abort "*********************************************************"
+}
+
+abort_android_version() {
+	ui_print "*********************************************************"
+	ui_print "! Your Android Version is not supported!"
+	ui_print "! Please use Android 9 (Pie) or higher."
+	ui_print "! Installation aborted."
+	abort "*********************************************************"
+}
+
+soc_recognition_extra() {
+	[ -d /sys/class/kgsl/kgsl-3d0/devfreq ] && {
+		SOC=2
+		ui_print "- Implementing tweaks for Snapdragon"
+		return 0
+	}
+
+	[ -d /sys/devices/platform/kgsl-2d0.0/kgsl ] && {
+		SOC=2
+		ui_print "- Implementing tweaks for Snapdragon"
+		return 0
+	}
+
+	[ -d /sys/kernel/ged/hal ] && {
+		SOC=1
+		ui_print "- Implementing tweaks for MediaTek"
+		return 0
+	}
+
+	[ -d /sys/kernel/tegra_gpu ] && {
+		SOC=6
+		ui_print "- Implementing tweaks for Nvidia Tegra"
+		return 0
+	}
+
+	return 1
+}
+
+get_soc_getprop() {
+	SOC_PROP="
+ro.board.platform
+ro.soc.model
+ro.hardware
+ro.chipname
+ro.hardware.chipname
+ro.vendor.soc.model.external_name
+ro.vendor.qti.soc_name
+ro.vendor.soc.model.part_name
+ro.vendor.soc.model
+"
+
+	for prop in $SOC_PROP; do
+		getprop "$prop"
+	done
+}
+
+recognize_soc() {
+	case "$1" in
+	*mt* | *MT*) SOC=1 ;;
+	*sm* | *qcom* | *SM* | *QCOM* | *Qualcomm*) SOC=2 ;;
+	*exynos* | *Exynos* | *EXYNOS* | *universal* | *samsung* | *erd* | *s5e*) SOC=3 ;;
+	*Unisoc* | *unisoc* | *ums* | *UNISOC* | *sp* | *SC*) SOC=4 ;;
+	*gs* | *Tensor* | *tensor*) SOC=5 ;;
+	*kirin*) SOC=7 ;;
+	esac
+
+	case "$SOC" in
+	1) ui_print "- Implementing tweaks for MediaTek" ;;
+	2) ui_print "- Implementing tweaks for Snapdragon" ;;
+	3) ui_print "- Implementing tweaks for Exynos" ;;
+	4) ui_print "- Implementing tweaks for Unisoc" ;;
+	5) ui_print "- Implementing tweaks for Google Tensor" ;;
+	6) ui_print "- Implementing tweaks for Nvidia Tegra" ;;
+	7) ui_print "- Implementing tweaks for Kirin" ;;
+	0) return 1 ;;
+	esac
+}
+
+generate_gamelist() {
+  extract "$ZIPFILE" 'gamelist.txt' "$MODULE_CONFIG"
+  "$MODPATH/system/bin/fluxd" setup_gamelist "$MODULE_CONFIG/gamelist.txt"
+  exit_code=$?
+
+  rm -f "$MODULE_CONFIG/gamelist.txt"
+  [ $exit_code -gt 0 ] && abort_gamelist_error
+}
+
+# Check Android version
+[ "$API" -lt 28 ] && abort_android_version
+
+# Flashable integrity checkup
+ui_print "- Extracting verify.sh"
+unzip -o "$ZIPFILE" 'verify.sh' -d "$TMPDIR" >&2
+[ ! -f "$TMPDIR/verify.sh" ] && abort_corrupted
+source "$TMPDIR/verify.sh"
+
+# Extract module files
+ui_print "- Extracting module files"
+extract "$ZIPFILE" 'module.prop' "$MODPATH"
+extract "$ZIPFILE" 'banner.webp' "$MODPATH"
+extract "$ZIPFILE" 'service.sh' "$MODPATH"
+extract "$ZIPFILE" 'uninstall.sh' "$MODPATH"
+extract "$ZIPFILE" 'action.sh' "$MODPATH"
+extract "$ZIPFILE" 'cleanup.sh' "$MODPATH"
+extract "$ZIPFILE" 'synthesiscore.apk' "$MODPATH"
+extract "$ZIPFILE" 'system/bin/flux_profiler' "$MODPATH"
+extract "$ZIPFILE" 'system/bin/flux_utility' "$MODPATH"
+cp "$MODPATH/module.prop" "$MODPATH/module.prop.orig"
+
+# Target architecture
+case $ARCH in
+"arm64") ARCH_TMP="arm64-v8a" ;;
+"arm") ARCH_TMP="armeabi-v7a" ;;
+*) abort_unsupported_arch ;;
+esac
+
+# Extract executables
+extract "$ZIPFILE" "libs/$ARCH_TMP/fluxd" "$TMPDIR"
+cp "$TMPDIR"/libs/"$ARCH_TMP"/* "$MODPATH/system/bin"
+rm -rf "$TMPDIR/libs"
+
+# Skip mountify
+touch "$MODPATH/skip_mountify"
+
+if [ "$KSU" = "true" ] || [ "$APATCH" = "true" ]; then
+  ui_print "- KSU/AP Detected, skipping module mount (skip_mount)"
+	rm "$MODPATH/action.sh"
+	touch "$MODPATH/skip_mount"
+
+	# symlink ourselves on $PATH
+	manager_paths="/data/adb/ap/bin /data/adb/ksu/bin"
+	BIN_PATH="/data/adb/modules/flux/system/bin"
+	for dir in $manager_paths; do
+		[ -d "$dir" ] && {
+			ui_print "- Creating symlink in $dir"
+			ln -sf "$BIN_PATH/fluxd" "$dir/fluxd"
+			ln -sf "$BIN_PATH/flux_profiler" "$dir/flux_profiler"
+			ln -sf "$BIN_PATH/flux_utility" "$dir/flux_utility"
+		}
+	done
+fi
+
+# Extract webroot
+ui_print "- Extracting webroot"
+unzip -o "$ZIPFILE" "webroot/*" -d "$MODPATH" -x "*.sha256" >&2
+
+# Mitigate root detection
+[ -d /data/flux ] && rm -rf /data/flux
+[ -f /data/local/tmp/flux_logo.png ] && rm -f /data/local/tmp/flux_logo.png
+
+# Set configs
+ui_print "- Flux Tweaks configuration setup"
+make_dir "$MODULE_CONFIG"
+unzip -o "$ZIPFILE" "config/*" -d "$MODULE_CONFIG" -x "*.sha256" >&2
+mv "$MODULE_CONFIG/config/"* "$MODULE_CONFIG/"
+rm -rf "$MODULE_CONFIG/config"
+
+# Permission settings
+ui_print "- Permission setup"
+set_perm_recursive "$MODPATH/system/bin" 0 0 0755 0755
+
+# Gamelist setup
+if [ ! -f "$MODULE_CONFIG/gamelist.json" ]; then
+  ui_print "- Initializing Gamelist JSON..."
+  generate_gamelist
+else
+  "$MODPATH/system/bin/fluxd" check_gamelist
+  [ $? -gt 0 ] && {
+    ui_print "! Gamelist JSON is malformed, regenerating..."
+    generate_gamelist
+  }
+fi
+
+# SOC CODE:
+# 1 = MediaTek
+# 2 = Qualcomm Snapdragon
+# 3 = Exynos
+# 4 = Unisoc
+# 5 = Google Tensor
+# 6 = Nvidia Tegra
+# 7 = Kirin
+
+# Recognize Chipset
+soc_recognition_extra
+[ $SOC -eq 0 ] && recognize_soc "$(</proc/device-tree/model)"
+[ $SOC -eq 0 ] && recognize_soc "$(get_soc_getprop)"
+[ $SOC -eq 0 ] && recognize_soc "$(grep -E "Hardware|Processor" /proc/cpuinfo | uniq | cut -d ':' -f 2 | sed 's/^[ \t]*//')"
+[ $SOC -eq 0 ] && recognize_soc "$(grep "model\sname" /proc/cpuinfo | uniq | cut -d ':' -f 2 | sed 's/^[ \t]*//')"
+[ $SOC -eq 0 ] && {
+	ui_print "! Unknown SoC, skipping some tweaks"
+	ui_print "! If you think this is wrong, please report to maintainer"
+}
+
+echo $SOC >"$MODULE_CONFIG/soc_recognition"
+
+# Easter Egg
+case "$((RANDOM % 10 + 1))" in
+1) ui_print "- Adaptive Performance Enabled." ;;
+2) ui_print "- Dynamic Optimization Loaded." ;;
+3) ui_print "- Performance in Motion." ;;
+4) ui_print "- Smart Efficiency Activated." ;;
+5) ui_print "- Tuning Resources..." ;;
+6) ui_print "- Balancing Power and Speed." ;;
+7) ui_print "- Flux Engine Ready." ;;
+8) ui_print "- Optimized for Gaming." ;;
+9) ui_print "- Powered by SynthesisCore." ;;
+10) ui_print "- Welcome to Flux Tweaks!" ;;
+esac
