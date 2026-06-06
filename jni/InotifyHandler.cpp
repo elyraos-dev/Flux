@@ -117,7 +117,7 @@ bool init_file_watcher(InotifyWatcher &watcher) {
         {
             SynthesisCore initial;
             if (SynthesisCoreReader::read(initial)) {
-                synsthesis_core_cache.update(initial);
+                synthesis_core_cache.update(initial);
                 LOGD_TAG("InotifyHandler", "Pre-seeded SynthesisCoreCache from existing status file");
             }
         }
