@@ -90,7 +90,7 @@ void apply_performance_profile(bool lite_mode, std::string game_pkg, pid_t game_
 
     uid_t game_uid = 0;
     SynthesisCore status;
-    if (synthesis_core_cache.get(status) && status.focused_app == game_pkg && status.focused_uid > 0) {
+    if (system_status_cache.get(status) && status.focused_app == game_pkg && status.focused_uid > 0) {
         game_uid = status.focused_uid;
     } else {
         game_uid = get_uid_by_package_name(game_pkg);
