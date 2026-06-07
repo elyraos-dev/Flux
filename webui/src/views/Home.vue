@@ -18,7 +18,7 @@
         >
           <img
             :src="homeStore.logoImage"
-            class="mx-2 w-22 h-22"
+            class="mx-2 w-22 h-22 object-contain"
             alt="Flux Logo"
             rel="preload"
             tabindex="0"

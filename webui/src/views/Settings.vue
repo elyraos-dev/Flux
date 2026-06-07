@@ -125,7 +125,7 @@
             </RippleComponent>
           </div>
 
-          <!-- <div class="md3-list">
+          <div class="md3-list">
             <RippleComponent @click="openCpuGovernorView" class="md3-list-item" tabindex="0">
               <div class="flex items-center justify-between px-5 py-4">
                 <div class="flex items-center gap-4 min-w-0 flex-1">
@@ -147,7 +147,7 @@
                 </div>
               </div>
             </RippleComponent>
-          </div> -->
+          </div>
 
           <div class="md3-list">
             <RippleComponent @click="openLogLvlView" class="md3-list-item" tabindex="0">

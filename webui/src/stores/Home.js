@@ -16,7 +16,7 @@ export const useHomeStore = defineStore('home', () => {
   const androidSDK = ref('')
   const daemonStatusRaw = ref('loading') // 'loading', 'running', 'stopped', 'error'
   const daemonError = ref('')
-  const logoImage = ref('/flux_sleeping.avif')
+  const logoImage = ref('/flux_sleeping.webp')
   const isInitialized = ref(false)
 
   let profileInterval = null
@@ -83,7 +83,7 @@ export const useHomeStore = defineStore('home', () => {
         daemonPidRaw.value = pid
         daemonStatusRaw.value = 'running'
         daemonError.value = ''
-        logoImage.value = '/flux_happy.avif'
+        logoImage.value = '/flux_happy.webp'
         return
       }
 
@@ -98,13 +98,13 @@ export const useHomeStore = defineStore('home', () => {
     daemonStatusRaw.value = 'stopped'
     daemonPidRaw.value = ''
     daemonError.value = ''
-    logoImage.value = '/flux_sleeping.avif'
+    logoImage.value = '/flux_sleeping.webp'
   }
 
   function setDaemonError(message) {
     daemonStatusRaw.value = 'error'
     daemonError.value = message
-    logoImage.value = '/flux_sleeping.avif'
+    logoImage.value = '/flux_sleeping.webp'
   }
 
   async function getAndroidSDK() {
@@ -141,20 +141,29 @@ export const useHomeStore = defineStore('home', () => {
   async function getCurrentProfile() {
     try {
       const output = await KernelSU.readFile(`${configPath}/current_profile`)
-      currentProfileRaw.value = getProfileKey(output.trim())
+      const trimmed = output.trim()
+      // If file is empty or not yet written by daemon, show 'initializing'
+      if (!trimmed || trimmed === '') {
+        currentProfileRaw.value = 'initializing'
+        return
+      }
+      currentProfileRaw.value = getProfileKey(trimmed)
     } catch (error) {
-      currentProfileRaw.value = 'unknown'
+      // File doesn't exist yet = daemon hasn't written it = initializing
+      currentProfileRaw.value = 'initializing'
     }
   }
 
   function getProfileKey(profileCode) {
+    // Keys must be strings since readFile returns string (e.g. "1", "2", "3")
+    // PERFCOMMON=0, PERFORMANCE_PROFILE=1, BALANCE_PROFILE=2, POWERSAVE_PROFILE=3
     const profileMap = {
-      0: 'initializing',
-      1: 'performance',
-      2: 'balanced',
-      3: 'powersave',
+      '0': 'initializing',
+      '1': 'performance',
+      '2': 'balanced',
+      '3': 'powersave',
     }
-    return profileMap[profileCode] || 'unknown'
+    return profileMap[String(profileCode)] || 'unknown'
   }
 
   async function getKernelVersion() {
