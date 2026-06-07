@@ -1,206 +1,220 @@
 {
-    "home_page": {
-        "title": "Flux Tweaks",
-        "status_card": {
-            "running": "Working ✨",
-            "stopped": "Stopped 💤",
-            "error": "Error ~",
-            "daemonPID": "Daemon PID: {pid}",
-            "daemon_inactive": "Service inactive",
-            "loading_daemon": "One moment please…"
-        },
-        "info_card": {
-            "module": "Flux Tweaks",
-            "profile": "Current Profile",
-            "kernel": "Kernel",
-            "chipset": "Chipset",
-            "androidSDK": "Android SDK"
-        },
-        "support_button": {
-            "title": "Support Me",
-            "description": "Flux Tweaks is, and always will be, free for you, and everyone. You can however show me that you care by making a donation."
-        },
-        "learn_flux": {
-            "title": "Learn Flux",
-            "description": "Learn how to use Flux Tweaks and its features."
-        }
+  "home_page": {
+    "title": "Flux Tweaks",
+    "status_card": {
+      "running": "Running at full throttle",
+      "stopped": "Engine offline",
+      "error": "Something went wrong",
+      "daemonPID": "Daemon PID: {pid}",
+      "daemon_inactive": "Flux daemon is not running",
+      "loading_daemon": "Spinning up the engine…"
     },
-    "games_page": {
-        "title": "My Games",
-        "search_placeholder": "Search apps",
-        "no_apps_found": "No apps found",
-        "badges": {
-            "tweak_enabled": "Enabled"
-        }
+    "info_card": {
+      "module": "Flux Tweaks",
+      "profile": "Current Profile",
+      "kernel": "Kernel",
+      "chipset": "Chipset",
+      "androidSDK": "Android SDK"
     },
-    "settings_page": {
-        "title": "Settings",
-        "section": {
-            "preferences": "Preferences",
-            "system": "System",
-            "others": "Others"
-        },
-        "lite_mode": {
-            "title": "Enforce Lite Mode",
-            "description": "Enable Lite Mode by default for all games"
-        },
-        "language": {
-            "title": "Language"
-        },
-        "device_mitigation": {
-            "title": "Device Mitigation",
-            "description": "Mitigate device specific issues on Flux Tweaks"
-        },
-        "cpu_governor": {
-            "title": "CPU Governor",
-            "description": "Customize CPU Governor per profile"
-        },
-        "log_level": {
-            "title": "Log Level",
-            "description": "Choose how detailed the Flux Tweaks operational log should be"
-        },
-        "save_log": {
-            "title": "Save Log",
-            "description": "Export Flux Tweaks operational log",
-            "exporting": "Packing logs, please wait…",
-            "success": "Log saved successfully",
-            "failure": "Failed to save log"
-        },
-        "create_shortcut": {
-            "title": "Create Shortcut",
-            "description": "Create a home screen shortcut for quick access to Flux Tweaks"
-        },
-        "disable_tweaks": {
-            "title": "Disable Tweaks",
-            "description": "Disable all performance tweaks set by Flux Tweaks, useful for addon-only users."
-        }
+    "support_button": {
+      "title": "Back the Project",
+      "description": "Flux Tweaks is free, forever — built out of passion for Android performance. If it’s made your device faster, consider supporting the work."
     },
-    "game_settings": {
-        "title": "Game Settings",
-        "application": "Application",
-        "preferences": "Preferences",
-        "enable_tweaks": "Enable Tweaks",
-        "lite_mode": "Lite Mode",
-        "lite_mode_description": "Optimize for longer battery life over peak performance",
-        "dnd_mode": "Do Not Disturb",
-        "dnd_mode_description": "Block notifications and calls while gaming",
-        "launch_app": "Launch",
-        "app_info": "App info"
-    },
-    "language_selection": {
-        "title": "Language",
-        "follow_system": "Follow system"
-    },
-    "log_level_selection": {
-        "title": "Log Level",
-        "level_0": "Critical",
-        "level_1": "Error",
-        "level_2": "Warning",
-        "level_3": "Info",
-        "level_4": "Debug",
-        "level_5": "Trace"
+    "learn_flux": {
+      "title": "Explore Flux",
+      "description": "Deep-dive into profiles, tuning, and everything Flux Tweaks can do for your device."
+    }
+  },
+  "games_page": {
+    "title": "My Games",
+    "search_placeholder": "Search apps",
+    "no_apps_found": "No apps found",
+    "badges": {
+      "tweak_enabled": "Enabled"
+    }
+  },
+  "settings_page": {
+    "title": "Settings",
+    "section": {
+      "preferences": "Preferences",
+      "system": "System",
+      "others": "Others",
+      "about": "About"
     },
     "lite_mode": {
-        "title": "Lite Mode",
-        "toggle_title": "Enforce lite mode",
-        "brief": "Lite mode reduces overheating and power consumption during gameplay by lowering CPU and component frequencies. This setting applies to all games when enabled."
+      "title": "Enforce Lite Mode",
+      "description": "Cap performance headroom for all games by default, saving battery without sacrificing smoothness"
     },
-    "disable_tweaks": {
-        "title": "Disable Tweaks",
-        "toggle_title": "Disable Tweaks",
-        "brief": "When enabled, this setting turns off all built-in performance optimizations on Flux Tweaks, allowing you to use this module strictly as a host for Flux Addon modules."
+    "language": {
+      "title": "Language"
     },
     "device_mitigation": {
-        "title": "Device Mitigation",
-        "toggle_title": "Enable device mitigation",
-        "brief": "Device mitigation disables potentially incompatible tweaks for specific devices. Keep it disabled unless you have problems."
+      "title": "Device Mitigation",
+      "description": "Apply device-specific workarounds to keep Flux stable on your hardware"
     },
     "cpu_governor": {
-        "title": "CPU Governor",
-        "default_title": "Default CPU Governor",
-        "default_description": "Applied to balanced and performance profiles when lite mode is active",
-        "powersave_title": "Powersave CPU Governor",
-        "powersave_description": "Exclusively used for the powersave profile",
-        "brief": "CPU governor is an algorithm that dynamically adjusts the processor's frequency in real time, directly affecting system performance and power consumption.",
-        "modal": {
-            "default_select_title": "Select Default CPU Governor",
-            "powersave_select_title": "Select Powersave CPU Governor",
-            "performance_warning": "Setting the governor to \"performance\" will cause overheating and rapid battery drain. Are you sure you want to proceed?",
-            "performance_warning_confirm": "I understand, Apply",
-            "initial_warn": "Please note that Flux Tweaks has automatically configured the optimal CPU Governor. Manual changes are not recommended unless you are an advanced user.",
-            "initial_warn_checkbox": "Don't show this again"
-        }
+      "title": "CPU Governor",
+      "description": "Fine-tune which CPU governor Flux uses for each performance profile"
     },
-    "reboot_modal": {
-        "title": "Reboot Required",
-        "description": "This change requires a reboot to take effect. Would you like to reboot now?",
-        "reboot": "Reboot Now",
-        "later": "Do It Later"
+    "log_level": {
+      "title": "Log Level",
+      "description": "Control how verbose the Flux operational log is"
     },
-    "profiles": {
-        "initializing": "Initializing",
-        "balanced": "Balanced",
-        "powersave": "Powersave",
-        "performance": "Performance",
-        "performance_lite": "Performance Lite"
+    "save_log": {
+      "title": "Save Log",
+      "description": "Export the full Flux diagnostic log for debugging or reporting",
+      "exporting": "Packing logs, please wait…",
+      "success": "Log saved successfully",
+      "failure": "Failed to save log"
     },
-    "toast": {
-        "reboot_to_apply": "Reboot your device to apply changes.",
-        "has_shortcut": "Shortcut already exists.",
-        "shortcut_unavailable": "No API available for this feature, use WebUI X to use this feature.",
-        "failed_open_extrenal_browser": "Failed to open external browser."
+    "create_shortcut": {
+      "title": "Create Shortcut",
+      "description": "Pin Flux Tweaks to your home screen for instant access"
     },
-    "navigation": {
-        "home": "Home",
-        "games": "Games",
-        "settings": "Settings",
-        "monitor": "Monitor"
+    "disable_tweaks": {
+      "title": "Disable Tweaks",
+      "description": "Suspend all Flux performance tweaks — useful if you only need the add-on framework"
     },
-    "common": {
-        "loading": "Loading",
-        "unknown": "Unknown",
-        "enabled": "Enabled",
-        "disabled": "Disabled",
-        "cancel": "Cancel",
-        "warning": "Warning",
-        "ok": "Okay"
-    },
-    "monitor_page": {
-        "title": "Live Monitor",
-        "live": "live",
-        "section": {
-            "session": "Session",
-            "thermal": "Thermal"
-        },
-        "profile_history": "Profile history (60s)",
-        "focused_app": "Focused App",
-        "thermal_headroom": "headroom",
-        "thermal_history": "Thermal history (60s)",
-        "thermal_unsupported": "Thermal headroom API not available on this device (requires API 31+)",
-        "thermal_label": {
-            "hot": "Hot",
-            "warm": "Warm",
-            "cool": "Cool",
-            "unsupported": "N/A"
-        },
-        "thermal_hint": {
-            "hot": "Performance Lite active",
-            "warm": "Hysteresis zone",
-            "cool": "Full performance available"
-        },
-        "charging": "Charging",
-        "audio": "Audio",
-        "audio_active": "Active",
-        "audio_silent": "Silent",
-        "screen": "Screen",
-        "screen_on": "On",
-        "screen_off": "Off",
-        "dnd": "Do Not Disturb",
-        "dnd_priority": "Priority",
-        "dnd_silence": "Total Silence",
-        "dnd_alarms": "Alarms Only",
-        "battery_saver": "Battery Saver",
-        "battery_saver_on": "Active — Powersave profile",
-        "battery_saver_off": "Inactive"
+    "about": {
+      "role": "Android Developer & Open-Source Creator",
+      "status": "Actively maintained",
+      "module_name": "Module",
+      "platform": "Root Platform",
+      "target": "Kernel Target",
+      "license": "License",
+      "description": "Flux Tweaks is a high-performance Magisk module engineered by FebriCahyaa, targeting Snapdragon SoCs with intelligent profiling, thermal awareness, and game-level CPU/GPU tuning. Built on a C++ daemon, Kotlin/Compose companion app, and a Vue 3 WebUI.",
+      "tagline": "Performance, evolved."
     }
+  },
+  "game_settings": {
+    "title": "Game Settings",
+    "application": "Application",
+    "preferences": "Preferences",
+    "enable_tweaks": "Enable Tweaks",
+    "lite_mode": "Lite Mode",
+    "lite_mode_description": "Optimize for longer battery life over peak performance",
+    "dnd_mode": "Do Not Disturb",
+    "dnd_mode_description": "Block notifications and calls while gaming",
+    "launch_app": "Launch",
+    "app_info": "App info"
+  },
+  "language_selection": {
+    "title": "Language",
+    "follow_system": "Follow system"
+  },
+  "log_level_selection": {
+    "title": "Log Level",
+    "level_0": "Critical",
+    "level_1": "Error",
+    "level_2": "Warning",
+    "level_3": "Info",
+    "level_4": "Debug",
+    "level_5": "Trace"
+  },
+  "lite_mode": {
+    "title": "Lite Mode",
+    "toggle_title": "Enforce lite mode",
+    "brief": "Lite mode reduces overheating and power consumption during gameplay by lowering CPU and component frequencies. This setting applies to all games when enabled."
+  },
+  "disable_tweaks": {
+    "title": "Disable Tweaks",
+    "toggle_title": "Disable Tweaks",
+    "brief": "When enabled, this setting turns off all built-in performance optimizations on Flux Tweaks, allowing you to use this module strictly as a host for Flux Addon modules."
+  },
+  "device_mitigation": {
+    "title": "Device Mitigation",
+    "toggle_title": "Enable device mitigation",
+    "brief": "Device mitigation disables potentially incompatible tweaks for specific devices. Keep it disabled unless you have problems."
+  },
+  "cpu_governor": {
+    "title": "CPU Governor",
+    "default_title": "Default CPU Governor",
+    "default_description": "Applied to balanced and performance profiles when lite mode is active",
+    "powersave_title": "Powersave CPU Governor",
+    "powersave_description": "Exclusively used for the powersave profile",
+    "brief": "CPU governor is an algorithm that dynamically adjusts the processor's frequency in real time, directly affecting system performance and power consumption.",
+    "modal": {
+      "default_select_title": "Select Default CPU Governor",
+      "powersave_select_title": "Select Powersave CPU Governor",
+      "performance_warning": "Setting the governor to \"performance\" will cause overheating and rapid battery drain. Are you sure you want to proceed?",
+      "performance_warning_confirm": "I understand, Apply",
+      "initial_warn": "Please note that Flux Tweaks has automatically configured the optimal CPU Governor. Manual changes are not recommended unless you are an advanced user.",
+      "initial_warn_checkbox": "Don't show this again"
+    }
+  },
+  "reboot_modal": {
+    "title": "Reboot Required",
+    "description": "This change requires a reboot to take effect. Would you like to reboot now?",
+    "reboot": "Reboot Now",
+    "later": "Do It Later"
+  },
+  "profiles": {
+    "initializing": "Initializing",
+    "balanced": "Balanced",
+    "powersave": "Powersave",
+    "performance": "Performance",
+    "performance_lite": "Performance Lite"
+  },
+  "toast": {
+    "reboot_to_apply": "Reboot your device to apply changes.",
+    "has_shortcut": "Shortcut already exists.",
+    "shortcut_unavailable": "No API available for this feature, use WebUI X to use this feature.",
+    "failed_open_extrenal_browser": "Failed to open external browser."
+  },
+  "navigation": {
+    "home": "Home",
+    "games": "Games",
+    "settings": "Settings",
+    "monitor": "Monitor"
+  },
+  "common": {
+    "loading": "Loading",
+    "unknown": "Unknown",
+    "enabled": "Enabled",
+    "disabled": "Disabled",
+    "cancel": "Cancel",
+    "warning": "Warning",
+    "ok": "Okay"
+  },
+  "monitor_page": {
+    "title": "Live Monitor",
+    "live": "live",
+    "section": {
+      "session": "Session",
+      "thermal": "Thermal"
+    },
+    "profile_history": "Profile history (60s)",
+    "focused_app": "Focused App",
+    "thermal_headroom": "headroom",
+    "thermal_history": "Thermal history (60s)",
+    "thermal_unsupported": "Thermal headroom API not available on this device (requires API 31+)",
+    "thermal_label": {
+      "hot": "Hot",
+      "warm": "Warm",
+      "cool": "Cool",
+      "unsupported": "N/A"
+    },
+    "thermal_hint": {
+      "hot": "Thermal pressure high — Performance Lite engaged",
+      "warm": "Entering hysteresis zone — throttling may begin",
+      "cool": "All systems nominal — full performance unlocked"
+    },
+    "charging": "Charging",
+    "audio": "Audio",
+    "audio_active": "Active",
+    "audio_silent": "Silent",
+    "screen": "Screen",
+    "screen_on": "On",
+    "screen_off": "Off",
+    "dnd": "Do Not Disturb",
+    "dnd_priority": "Priority",
+    "dnd_silence": "Total Silence",
+    "dnd_alarms": "Alarms Only",
+    "battery_saver": "Battery Saver",
+    "battery_saver_on": "Active — Powersave profile engaged",
+    "battery_saver_off": "Inactive",
+    "thermal_unsupported_title": "Thermal API Unavailable",
+    "thermal_gki_note": "GKI kernels may not expose thermal headroom API",
+    "profile_active": "Active"
+  }
 }

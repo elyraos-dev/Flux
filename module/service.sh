@@ -73,6 +73,30 @@ fi
 # Revert to normal CPU governor
 echo "$default_gov" | tee /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor
 
+# ── Detect GKI vs Non-GKI kernel and cache result ────────────────────────────
+KERNEL_VER=$(uname -r)
+if echo "$KERNEL_VER" | grep -qE "\-android[0-9]+-"; then
+	IS_GKI=1
+	echo "GKI" > "$MODULE_CONFIG/kernel_type"
+else
+	IS_GKI=0
+	echo "Non-GKI" > "$MODULE_CONFIG/kernel_type"
+fi
+echo "$IS_GKI" > "$MODULE_CONFIG/is_gki"
+
+# ── Thermal headroom API availability check ───────────────────────────────────
+# Android Thermal API (getThermalHeadroom) requires API level 31+ (Android 12).
+# On GKI kernels, the Java-side daemon exposes this via SynthesisCore.
+# Write a hint file so the WebUI can show a meaningful explanation when unavailable.
+SDK=$(getprop ro.build.version.sdk 2>/dev/null || echo "0")
+if [ "$SDK" -lt 31 ]; then
+	echo "unsupported_api_level" > "$MODULE_CONFIG/thermal_api_status"
+elif [ "$IS_GKI" -eq 1 ]; then
+	echo "gki_may_vary" > "$MODULE_CONFIG/thermal_api_status"
+else
+	echo "supported" > "$MODULE_CONFIG/thermal_api_status"
+fi
+
 # Mitigate buggy thermal throttling on post-startup
 # in old MediaTek devices.
 ENABLE_PPM="/proc/ppm/enabled"

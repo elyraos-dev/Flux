@@ -30,6 +30,44 @@ SOC=$(<$MODULE_CONFIG/soc_recognition)
 # Default CPU Governor
 DEFAULT_CPU_GOV="$FLUX_BALANCED_CPUGOV"
 
+# ──────────────────────────────────────────────────────────────────────────────
+# GKI / Non-GKI Detection
+#
+# GKI (Generic Kernel Image) kernels ship with a standardised interface and
+# may lack vendor-specific tunables (e.g. /proc/ppm, dcvs, EARA, vendor
+# cgroup hierarchies).  We detect GKI by checking the kernel version string:
+# GKI kernels include "-android<ver>-" in `uname -r`, e.g.:
+#   5.15.123-android13-8-00123-g...
+# Non-GKI kernels typically carry an OEM/device suffix instead, e.g.:
+#   4.19.191-perf+  or  5.10.149-qcom-le
+# ──────────────────────────────────────────────────────────────────────────────
+
+detect_kernel_type() {
+	KERNEL_VER=$(uname -r)
+	if echo "$KERNEL_VER" | grep -qE "\-android[0-9]+-"; then
+		IS_GKI=1
+	else
+		IS_GKI=0
+	fi
+	# Cache result for logging / daemon consumption
+	echo "$IS_GKI" > "$MODULE_CONFIG/is_gki"
+}
+
+# Wrapper: apply only on Non-GKI kernels
+apply_non_gki() {
+	[ "$IS_GKI" -eq 1 ] && return 0
+	apply "$1" "$2"
+}
+
+# Wrapper: apply only on GKI kernels
+apply_gki() {
+	[ "$IS_GKI" -eq 0 ] && return 0
+	apply "$1" "$2"
+}
+
+# Detect at script startup
+detect_kernel_type
+
 # Just a note that lite mode is now controlled by script arg, check case
 # statement on the EOF and performance_profile() function.
 
@@ -693,7 +731,37 @@ perfcommon() {
 	apply "libunity.so, libil2cpp.so, libmain.so, libUE4.so, libgodot_android.so, libgdx.so, libgdx-box2d.so, libminecraftpe.so, libLive2DCubismCore.so, libyuzu-android.so, libryujinx.so, libcitra-android.so, libhdr_pro_engine.so, libandroidx.graphics.path.so, libeffect.so" /proc/sys/kernel/sched_lib_name
 	apply 255 /proc/sys/kernel/sched_lib_mask_force
 
-	# Set thermal governor to step_wise
+	# ── GKI-specific tweaks ─────────────────────────────────────────────────
+	# GKI kernels (android<ver>- tagged) support standard eBPF, UFFD, and
+	# io_uring interfaces but lack many vendor-private nodes.
+	if [ "$IS_GKI" -eq 1 ]; then
+		# Enable io_uring for lower-latency async I/O (GKI 5.10+)
+		apply 1 /proc/sys/kernel/io_uring_disabled 2>/dev/null || true
+
+		# Tune CFS bandwidth — GKI-standard sysctl
+		apply 0 /proc/sys/kernel/sched_cfs_bandwidth_slice_us 2>/dev/null || true
+
+		# Use standard eBPF-based network path if available
+		apply 1 /proc/sys/net/core/bpf_jit_enable 2>/dev/null || true
+	fi
+
+	# ── Non-GKI (OEM/vendor kernel) specific tweaks ──────────────────────────
+	# These nodes are typically only present on vendor-patched kernels.
+	if [ "$IS_GKI" -eq 0 ]; then
+		# Qualcomm DCVS bus votes — skip on GKI (handled by standard cpufreq)
+		for component in LLCC DDR L3; do
+			apply 40 /sys/devices/system/cpu/bus_dcvs/$component/ipm_ceil 2>/dev/null || true
+		done
+
+		# Xiaomi/MIUI kernel extensions
+		apply 0 /sys/module/migt/parameters/glk_disable 2>/dev/null || true
+		apply 1 /sys/module/migt/parameters/migt_enable 2>/dev/null || true
+
+		# Samsung/Exynos scheduler hints
+		apply 0 /sys/kernel/ems/eas_disable 2>/dev/null || true
+	fi
+
+	# Set thermal governor to step_wise (works on both GKI and Non-GKI)
 	for dir in /sys/class/thermal/thermal_zone*; do
 		apply "step_wise" "$dir/policy"
 	done

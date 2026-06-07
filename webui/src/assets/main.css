@@ -16,7 +16,7 @@ html::-webkit-scrollbar {
 }
 
 body {
-  font-family: 'Google Sans Flex', system-ui, sans-serif;
+  font-family: 'Poppins', 'Google Sans Flex', system-ui, sans-serif;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;

@@ -10,8 +10,10 @@
 
     <div class="scrollbar-hidden pb-safe-nav flex-1 min-h-0 overflow-y-scroll">
       <div class="max-w-3xl mx-auto p-5 py-1">
+
+        <!-- Preferences -->
         <div class="px-4 py-2 mb-1">
-          <h2 class="text-sm font-medium text-on-surface-variant">
+          <h2 class="text-xs font-semibold uppercase tracking-widest text-on-surface-variant">
             {{ $t('settings_page.section.preferences') }}
           </h2>
         </div>
@@ -24,17 +26,11 @@
                   <div class="w-10 h-10 rounded-full bg-primary-container flex items-center justify-center shrink-0">
                     <FeatherIcon class="w-5 h-5 text-on-primary-container" />
                   </div>
-
                   <div class="flex-1 min-w-0">
-                    <h3 class="text-sm font-medium text-on-surface">
-                      {{ $t('settings_page.lite_mode.title') }}
-                    </h3>
-                    <p class="text-xs text-on-surface-variant mt-1 line-clamp-2">
-                      {{ $t('settings_page.lite_mode.description') }}
-                    </p>
+                    <h3 class="text-sm font-semibold text-on-surface">{{ $t('settings_page.lite_mode.title') }}</h3>
+                    <p class="text-xs text-on-surface-variant mt-1 line-clamp-2">{{ $t('settings_page.lite_mode.description') }}</p>
                   </div>
                 </div>
-
                 <div class="w-7 h-7 rounded-full bg-surface-dim flex items-center justify-center shrink-0 ms-3">
                   <ChevronRightIcon class="text-on-surface-variant shrink-0 rtl:rotate-180" :size="22" />
                 </div>
@@ -49,17 +45,11 @@
                   <div class="w-10 h-10 rounded-full bg-primary-container flex items-center justify-center shrink-0">
                     <TuneIcon class="w-5 h-5 text-on-primary-container" />
                   </div>
-
                   <div class="flex-1 min-w-0">
-                    <h3 class="text-sm font-medium text-on-surface">
-                      {{ $t('settings_page.disable_tweaks.title') }}
-                    </h3>
-                    <p class="text-xs text-on-surface-variant mt-1 line-clamp-2">
-                      {{ $t('settings_page.disable_tweaks.description') }}
-                    </p>
+                    <h3 class="text-sm font-semibold text-on-surface">{{ $t('settings_page.disable_tweaks.title') }}</h3>
+                    <p class="text-xs text-on-surface-variant mt-1 line-clamp-2">{{ $t('settings_page.disable_tweaks.description') }}</p>
                   </div>
                 </div>
-
                 <div class="w-7 h-7 rounded-full bg-surface-dim flex items-center justify-center shrink-0 ms-3">
                   <ChevronRightIcon class="text-on-surface-variant shrink-0 rtl:rotate-180" :size="22" />
                 </div>
@@ -74,17 +64,11 @@
                   <div class="w-10 h-10 rounded-full bg-primary-container flex items-center justify-center shrink-0">
                     <LanguageIcon class="w-5 h-5 text-on-primary-container" />
                   </div>
-
                   <div class="flex-1 min-w-0">
-                    <h3 class="text-sm font-medium text-on-surface">
-                      {{ $t('settings_page.language.title') }}
-                    </h3>
-                    <p class="text-xs text-on-surface-variant mt-1">
-                      {{ currentLanguage }}
-                    </p>
+                    <h3 class="text-sm font-semibold text-on-surface">{{ $t('settings_page.language.title') }}</h3>
+                    <p class="text-xs text-on-surface-variant mt-1">{{ currentLanguage }}</p>
                   </div>
                 </div>
-
                 <div class="w-7 h-7 rounded-full bg-surface-dim flex items-center justify-center shrink-0 ms-3">
                   <ChevronRightIcon class="text-on-surface-variant shrink-0 rtl:rotate-180" :size="22" />
                 </div>
@@ -93,8 +77,9 @@
           </div>
         </div>
 
+        <!-- System -->
         <div class="px-4 py-2 mb-1">
-          <h2 class="text-sm font-medium text-on-surface-variant">
+          <h2 class="text-xs font-semibold uppercase tracking-widest text-on-surface-variant">
             {{ $t('settings_page.section.system') }}
           </h2>
         </div>
@@ -107,17 +92,11 @@
                   <div class="w-10 h-10 rounded-full bg-primary-container flex items-center justify-center shrink-0">
                     <BugIcon class="w-5 h-5 text-on-primary-container" />
                   </div>
-
                   <div class="flex-1 min-w-0">
-                    <h3 class="text-sm font-medium text-on-surface">
-                      {{ $t('settings_page.device_mitigation.title') }}
-                    </h3>
-                    <p class="text-xs text-on-surface-variant mt-1 line-clamp-2">
-                      {{ $t('settings_page.device_mitigation.description') }}
-                    </p>
+                    <h3 class="text-sm font-semibold text-on-surface">{{ $t('settings_page.device_mitigation.title') }}</h3>
+                    <p class="text-xs text-on-surface-variant mt-1 line-clamp-2">{{ $t('settings_page.device_mitigation.description') }}</p>
                   </div>
                 </div>
-
                 <div class="w-7 h-7 rounded-full bg-surface-dim flex items-center justify-center shrink-0 ms-3">
                   <ChevronRightIcon class="text-on-surface-variant shrink-0 rtl:rotate-180" :size="22" />
                 </div>
@@ -133,15 +112,10 @@
                     <ChipsetIcon class="w-5 h-5 text-on-primary-container" />
                   </div>
                   <div class="flex-1 min-w-0">
-                    <h3 class="text-sm font-medium text-on-surface">
-                      {{ $t('settings_page.cpu_governor.title') }}
-                    </h3>
-                    <p class="text-xs text-on-surface-variant mt-1 line-clamp-2">
-                      {{ $t('settings_page.cpu_governor.description') }}
-                    </p>
+                    <h3 class="text-sm font-semibold text-on-surface">{{ $t('settings_page.cpu_governor.title') }}</h3>
+                    <p class="text-xs text-on-surface-variant mt-1 line-clamp-2">{{ $t('settings_page.cpu_governor.description') }}</p>
                   </div>
                 </div>
-
                 <div class="w-7 h-7 rounded-full bg-surface-dim flex items-center justify-center shrink-0 ms-3">
                   <ChevronRightIcon class="text-on-surface-variant shrink-0 rtl:rotate-180" :size="22" />
                 </div>
@@ -156,17 +130,11 @@
                   <div class="w-10 h-10 rounded-full bg-primary-container flex items-center justify-center shrink-0">
                     <TextIcon class="w-5 h-5 text-on-primary-container" />
                   </div>
-
                   <div class="flex-1 min-w-0">
-                    <h3 class="text-sm font-medium text-on-surface">
-                      {{ $t('settings_page.log_level.title') }}
-                    </h3>
-                    <p class="text-xs text-on-surface-variant mt-1 line-clamp-2">
-                      {{ $t('settings_page.log_level.description') }}
-                    </p>
+                    <h3 class="text-sm font-semibold text-on-surface">{{ $t('settings_page.log_level.title') }}</h3>
+                    <p class="text-xs text-on-surface-variant mt-1 line-clamp-2">{{ $t('settings_page.log_level.description') }}</p>
                   </div>
                 </div>
-
                 <div class="w-7 h-7 rounded-full bg-surface-dim flex items-center justify-center shrink-0 ms-3">
                   <ChevronRightIcon class="text-on-surface-variant shrink-0 rtl:rotate-180" :size="22" />
                 </div>
@@ -175,8 +143,9 @@
           </div>
         </div>
 
+        <!-- Others -->
         <div class="px-4 py-2 mb-1">
-          <h2 class="text-sm font-medium text-on-surface-variant">
+          <h2 class="text-xs font-semibold uppercase tracking-widest text-on-surface-variant">
             {{ $t('settings_page.section.others') }}
           </h2>
         </div>
@@ -189,17 +158,11 @@
                   <div class="w-10 h-10 rounded-full bg-primary-container flex items-center justify-center shrink-0">
                     <ContentSaveIcon class="w-5 h-5 text-on-primary-container" />
                   </div>
-
                   <div class="flex-1 min-w-0">
-                    <h3 class="text-sm font-medium text-on-surface">
-                      {{ $t('settings_page.save_log.title') }}
-                    </h3>
-                    <p class="text-xs text-on-surface-variant mt-1 line-clamp-2">
-                      {{ $t('settings_page.save_log.description') }}
-                    </p>
+                    <h3 class="text-sm font-semibold text-on-surface">{{ $t('settings_page.save_log.title') }}</h3>
+                    <p class="text-xs text-on-surface-variant mt-1 line-clamp-2">{{ $t('settings_page.save_log.description') }}</p>
                   </div>
                 </div>
-
                 <div class="w-7 h-7 rounded-full bg-surface-dim flex items-center justify-center shrink-0 ms-3">
                   <ChevronRightIcon class="text-on-surface-variant shrink-0 rtl:rotate-180" :size="22" />
                 </div>
@@ -214,17 +177,11 @@
                   <div class="w-10 h-10 rounded-full bg-primary-container flex items-center justify-center shrink-0">
                     <HomePlusIcon class="w-5 h-5 text-on-primary-container" />
                   </div>
-
                   <div class="flex-1 min-w-0">
-                    <h3 class="text-sm font-medium text-on-surface">
-                      {{ $t('settings_page.create_shortcut.title') }}
-                    </h3>
-                    <p class="text-xs text-on-surface-variant mt-1 line-clamp-2">
-                      {{ $t('settings_page.create_shortcut.description') }}
-                    </p>
+                    <h3 class="text-sm font-semibold text-on-surface">{{ $t('settings_page.create_shortcut.title') }}</h3>
+                    <p class="text-xs text-on-surface-variant mt-1 line-clamp-2">{{ $t('settings_page.create_shortcut.description') }}</p>
                   </div>
                 </div>
-
                 <div class="w-7 h-7 rounded-full bg-surface-dim flex items-center justify-center shrink-0 ms-3">
                   <ChevronRightIcon class="text-on-surface-variant shrink-0 rtl:rotate-180" :size="22" />
                 </div>
@@ -232,9 +189,96 @@
             </RippleComponent>
           </div>
         </div>
+
+        <!-- ── About Developer ─────────────────────────────────────────────── -->
+        <div class="px-4 py-2 mb-1">
+          <h2 class="text-xs font-semibold uppercase tracking-widest text-on-surface-variant">
+            {{ $t('settings_page.section.about') }}
+          </h2>
+        </div>
+
+        <!-- Developer card -->
+        <div class="about-card bg-surface-container rounded-2xl overflow-hidden mb-3">
+          <!-- Header banner -->
+          <div class="about-banner px-5 pt-5 pb-4 relative overflow-hidden">
+            <div class="about-banner-bg"></div>
+            <div class="relative z-10 flex items-center gap-4">
+              <div class="about-avatar w-14 h-14 rounded-2xl bg-primary-container flex items-center justify-center shrink-0">
+                <CodeIcon :size="24" class="text-on-primary-container" />
+              </div>
+              <div>
+                <h3 class="text-base font-bold text-on-surface">FebriCahyaa</h3>
+                <p class="text-xs text-on-surface-variant mt-0.5">{{ $t('settings_page.about.role') }}</p>
+                <div class="flex items-center gap-1 mt-1">
+                  <div class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></div>
+                  <span class="text-xs text-primary font-medium">{{ $t('settings_page.about.status') }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Module info -->
+          <div class="px-5 py-4 border-t border-outline-variant border-opacity-30">
+            <div class="grid grid-cols-2 gap-3">
+              <div class="bg-surface-container-high rounded-xl p-3">
+                <p class="text-xs text-on-surface-variant font-medium mb-1">{{ $t('settings_page.about.module_name') }}</p>
+                <p class="text-sm font-bold text-on-surface">Flux Tweaks</p>
+              </div>
+              <div class="bg-surface-container-high rounded-xl p-3">
+                <p class="text-xs text-on-surface-variant font-medium mb-1">{{ $t('settings_page.about.platform') }}</p>
+                <p class="text-sm font-bold text-on-surface">Magisk · KSU · APatch</p>
+              </div>
+              <div class="bg-surface-container-high rounded-xl p-3">
+                <p class="text-xs text-on-surface-variant font-medium mb-1">{{ $t('settings_page.about.target') }}</p>
+                <p class="text-sm font-bold text-on-surface">GKI &amp; Non-GKI</p>
+              </div>
+              <div class="bg-surface-container-high rounded-xl p-3">
+                <p class="text-xs text-on-surface-variant font-medium mb-1">{{ $t('settings_page.about.license') }}</p>
+                <p class="text-sm font-bold text-on-surface">Apache 2.0</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Description -->
+          <div class="px-5 pb-4">
+            <p class="text-xs text-on-surface-variant leading-relaxed">
+              {{ $t('settings_page.about.description') }}
+            </p>
+          </div>
+
+          <!-- Links -->
+          <div class="px-5 pb-5 flex gap-2">
+            <RippleComponent
+              @click="openGithub"
+              class="flex-1 flex items-center justify-center gap-2 bg-surface-container-high rounded-xl py-3 cursor-pointer"
+              tabindex="0"
+            >
+              <GithubIcon :size="16" class="text-on-surface" />
+              <span class="text-xs font-semibold text-on-surface">GitHub</span>
+            </RippleComponent>
+            <RippleComponent
+              @click="openTelegram"
+              class="flex-1 flex items-center justify-center gap-2 bg-primary-container rounded-xl py-3 cursor-pointer"
+              tabindex="0"
+            >
+              <TelegramIcon :size="16" class="text-on-primary-container" />
+              <span class="text-xs font-semibold text-on-primary-container">Telegram</span>
+            </RippleComponent>
+          </div>
+        </div>
+
+        <!-- Module tagline -->
+        <div class="text-center py-3 mb-2">
+          <p class="text-xs text-on-surface-variant font-medium italic opacity-60">
+            "{{ $t('settings_page.about.tagline') }}"
+          </p>
+          <p class="text-xs text-on-surface-variant opacity-40 mt-1">Flux Tweaks · FebriCahyaa</p>
+        </div>
+
       </div>
     </div>
 
+    <!-- Export Modal -->
     <Modal :show="showExportModal" :title="$t('settings_page.save_log.title')" @close="closeExportModal"
       :closeOnOutsideClick="false">
       <div class="px-4 pb-2">
@@ -246,8 +290,7 @@
         <div v-else-if="exportStatus === 'success'" class="flex flex-col items-center gap-3 py-4">
           <CheckCircle :size="48" class="text-primary" />
           <p class="text-on-surface font-medium text-center">{{ $t('settings_page.save_log.success') }}</p>
-          <p
-            class="text-on-surface-variant text-xs break-all text-center bg-surface-container-low px-4 py-3 rounded-xl w-full">
+          <p class="text-on-surface-variant text-xs break-all text-center bg-surface-container-low px-4 py-3 rounded-xl w-full font-mono">
             {{ exportPath }}
           </p>
         </div>
@@ -262,8 +305,8 @@
       <template #actions>
         <div v-if="exportStatus !== 'loading'" class="flex gap-2">
           <button @click="closeExportModal"
-            class="px-4 py-2 text-sm font-medium text-primary hover:bg-primary/10 rounded-full transition-colors">
-            {{ exportStatus === 'success' ? 'Close' : $t('common.ok') }}
+            class="px-4 py-2 text-sm font-semibold text-primary hover:bg-primary/10 rounded-full transition-colors">
+            {{ exportStatus === 'success' ? $t('common.ok') : $t('common.cancel') }}
           </button>
         </div>
       </template>
@@ -291,6 +334,9 @@ import ErrorIcon from '@/components/icons/Error.vue'
 import Modal from '@/components/ui/Modal.vue'
 import LoadingSpinner from '@/components/ui/LoadingSpinner.vue'
 import CheckCircle from '@/components/icons/CheckCircle.vue'
+import CodeIcon from '@/components/icons/Code.vue'
+import GithubIcon from '@/components/icons/Github.vue'
+import TelegramIcon from '@/components/icons/Telegram.vue'
 
 import * as KernelSU from '@/helpers/KernelSU'
 import { exec } from 'kernelsu'
@@ -299,13 +345,11 @@ const router = useRouter()
 const { t } = useI18n()
 const languageStore = useLanguageStore()
 
-// Modal state
 const showExportModal = ref(false)
-const exportStatus = ref('idle') // 'idle', 'loading', 'success', 'error'
+const exportStatus = ref('idle')
 const exportPath = ref('')
 const exportErrorMsg = ref('')
 
-// Computed property for current language display
 const currentLanguage = computed(() => {
   if (languageStore.userPreference === null) {
     return t('language_selection.follow_system')
@@ -323,6 +367,9 @@ const openCpuGovernorView = () => router.push('/settings/cpu_governor')
 const openLogLvlView = () => router.push('/settings/log_level')
 const openDisableTweaksView = () => router.push('/settings/disable_tweaks')
 const createShortcut = () => KernelSU.createShortcut()
+
+const openGithub = () => KernelSU.openWebsite('https://github.com/FebriCahyaa/Flux')
+const openTelegram = () => KernelSU.openWebsite('https://t.me/c/3901105851/3')
 
 const openExportModal = () => {
   exportStatus.value = 'loading'
@@ -368,5 +415,27 @@ const closeExportModal = () => {
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+}
+
+.about-banner {
+  background: linear-gradient(135deg,
+    color-mix(in srgb, var(--color-primary-container) 80%, transparent),
+    color-mix(in srgb, var(--color-secondary-container) 60%, transparent)
+  );
+}
+
+.about-banner-bg {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at top right, color-mix(in srgb, var(--color-primary) 10%, transparent), transparent 70%);
+  pointer-events: none;
+}
+
+.about-avatar {
+  box-shadow: 0 4px 20px color-mix(in srgb, var(--color-primary) 20%, transparent);
+}
+
+.about-card {
+  border: 1px solid color-mix(in srgb, var(--color-outline-variant) 40%, transparent);
 }
 </style>
