@@ -137,6 +137,8 @@ struct DaemonState {
 
     bool in_game_session = false;
     bool battery_saver_state = false;
+    bool charging_state = false;
+    bool audio_active = false;
     bool need_profile_checkup = false;
     bool game_requested_dnd = false;
     bool prev_dnd_state = false;
@@ -199,6 +201,40 @@ struct DaemonState {
         return std::nullopt;
     }
     return status.battery_saver;
+}
+
+/**
+ * @brief Queries the current charging state from the inotify-fed cache.
+ */
+[[nodiscard]] static std::optional<bool> get_charging_state() {
+    SynthesisCore status;
+    if (!synthesis_core_cache.get(status)) {
+        return std::nullopt;
+    }
+    return status.charging;
+}
+
+/**
+ * @brief Queries whether audio is currently active from the inotify-fed cache.
+ */
+[[nodiscard]] static std::optional<bool> get_audio_active() {
+    SynthesisCore status;
+    if (!synthesis_core_cache.get(status)) {
+        return std::nullopt;
+    }
+    return status.audio_active;
+}
+
+/**
+ * @brief Returns the latest thermal headroom from the inotify-fed cache.
+ * @return -1.0 when cache is not yet populated or device doesn't support the API.
+ */
+[[nodiscard]] static float get_thermal_headroom() {
+    SynthesisCore status;
+    if (!synthesis_core_cache.get(status)) {
+        return -1.0f;
+    }
+    return status.thermal_headroom;
 }
 
 /**
@@ -303,11 +339,33 @@ static void handle_game_exit(DaemonState &state) {
     }
 
     state.need_profile_checkup = false;
-    state.cur_mode = PERFORMANCE_PROFILE;
 
-    LOGI("Applying performance profile for {} (PID: {})", state.active_package, game_pid);
-    const bool lite_mode = active_game->lite_mode || config_store.get_preferences().enforce_lite_mode;
-    apply_performance_profile(lite_mode, state.active_package, game_pid);
+    const bool config_lite = active_game->lite_mode || config_store.get_preferences().enforce_lite_mode;
+    const float thermal = get_thermal_headroom();
+    const bool thermal_lite = (thermal >= 0.0f && thermal < THERMAL_LITE_THRESHOLD);
+
+    if (config_lite) {
+        // Config-forced lite mode: always use lite, ignore thermal
+        if (state.cur_mode == PERFORMANCE_LITE_PROFILE && !state.need_profile_checkup) return true;
+        state.cur_mode = PERFORMANCE_LITE_PROFILE;
+        LOGI("Applying performance_lite profile for {} (PID: {}) [config]", state.active_package, game_pid);
+        apply_performance_lite_profile(state.active_package, game_pid);
+    } else if (thermal_lite) {
+        // Thermal pressure detected: downgrade to lite
+        if (state.cur_mode == PERFORMANCE_LITE_PROFILE) return true;
+        state.cur_mode = PERFORMANCE_LITE_PROFILE;
+        LOGW("Thermal headroom {:.2f} < {:.2f} — downgrading to performance_lite for {}",
+             thermal, THERMAL_LITE_THRESHOLD, state.active_package);
+        apply_performance_lite_profile(state.active_package, game_pid);
+    } else {
+        // Recover to full performance if headroom is healthy or unsupported
+        const bool can_upgrade = (thermal < 0.0f || thermal >= THERMAL_RECOVER_THRESHOLD);
+        if (state.cur_mode == PERFORMANCE_PROFILE && !state.need_profile_checkup) return true;
+        if (state.cur_mode == PERFORMANCE_LITE_PROFILE && !can_upgrade) return true;
+        state.cur_mode = PERFORMANCE_PROFILE;
+        LOGI("Applying performance profile for {} (PID: {})", state.active_package, game_pid);
+        apply_performance_profile(false, state.active_package, game_pid);
+    }
 
     // For MLBB and other games by Moonton, UnityKillsMe is the foreground process.
     // For all other games, track the main game PID.
@@ -351,15 +409,32 @@ static void handle_game_exit(DaemonState &state) {
  * @brief Select and apply the appropriate profile based on current state.
  *
  * Priority order:
- *   1. Active game + screen awake  → performance profile
+ *   1. Active game + screen awake  → performance or performance_lite (thermal-aware)
  *   2. Battery saver active        → powersave profile
- *   3. Otherwise                   → balance profile
+ *   3. Charging + no game          → balance profile (allow full clock recovery)
+ *   4. Otherwise                   → balance profile
+ *
+ * Thermal-aware tiering (within game session):
+ *   - thermal_headroom < THERMAL_LITE_THRESHOLD  → performance_lite
+ *   - thermal_headroom >= THERMAL_RECOVER_THRESHOLD (or unsupported) → performance
+ *   - Hysteresis gap between the two thresholds prevents rapid oscillation.
+ *
+ * Audio guard: profile switches are suppressed while audio_active=1 to avoid
+ * disrupting in-game audio during brief focus blips.
  *
  * Each branch is a no-op when the current mode already matches.
  */
 static void select_profile(DaemonState &state) {
+    // Audio guard: skip profile change if audio is playing and we're already
+    // in a performance tier — avoids micro-stutters from mid-session switches.
+    const bool in_perf_tier = (state.cur_mode == PERFORMANCE_PROFILE ||
+                                state.cur_mode == PERFORMANCE_LITE_PROFILE);
+    if (state.audio_active && in_perf_tier && !state.need_profile_checkup) {
+        LOGD("Audio active — suppressing profile switch");
+        return;
+    }
+
     if (!state.active_package.empty() && state.synthesis_core.screen_awake) {
-        if (!state.need_profile_checkup && state.cur_mode == PERFORMANCE_PROFILE) return;
         if (apply_game_profile(state)) return;
     }
 
@@ -376,7 +451,7 @@ static void select_profile(DaemonState &state) {
     if (state.cur_mode == BALANCE_PROFILE) return;
     state.cur_mode = BALANCE_PROFILE;
     state.need_profile_checkup = false;
-    LOGI("Applying balance profile");
+    LOGI("Applying balance profile{}", state.charging_state ? " (charging)" : "");
     apply_balance_profile();
     clear_dnd_if_needed(state);
 }
@@ -470,6 +545,20 @@ static void flux_main_daemon() {
                     state.battery_saver_state = *bs_state;
                 } else {
                     LOGW("get_battery_saver_state: cache not yet populated, retaining last known value");
+                }
+            }
+
+            // Refresh charging and audio state unconditionally — used by
+            // select_profile regardless of whether a game is active.
+            {
+                const auto charging = get_charging_state();
+                if (charging.has_value()) {
+                    state.charging_state = *charging;
+                }
+
+                const auto audio = get_audio_active();
+                if (audio.has_value()) {
+                    state.audio_active = *audio;
                 }
             }
 

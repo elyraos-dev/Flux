@@ -29,6 +29,9 @@ struct SynthesisCore {
     bool screen_awake = false;
     bool battery_saver = false;
     int zen_mode = 0;
+    bool charging = false;
+    float thermal_headroom = -1.0f; // -1.0 = unsupported (API < 31)
+    bool audio_active = false;
 };
 
 namespace SynthesisCoreReader {

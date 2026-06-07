@@ -21,5 +21,6 @@ void set_profiler_env_vars();
 
 void run_perfcommon(void);
 void apply_performance_profile(bool lite_mode, std::string game_pkg, pid_t game_pid);
+void apply_performance_lite_profile(std::string game_pkg, pid_t game_pid);
 void apply_balance_profile();
 void apply_powersave_profile();

@@ -30,6 +30,7 @@ bool read(SynthesisCore &out, const char *path) {
     if (!fp) return false;
 
     out = {}; // zero-init defaults
+    out.thermal_headroom = -1.0f; // sentinel: unsupported until parsed
     bool parsed_any = false;
 
     char line[256];
@@ -61,6 +62,25 @@ bool read(SynthesisCore &out, const char *path) {
 
         if (sscanf(line, "zen_mode %d", &ival) == 1) {
             out.zen_mode = ival;
+            parsed_any = true;
+            continue;
+        }
+
+        if (sscanf(line, "charging_state %d", &ival) == 1) {
+            out.charging = (ival != 0);
+            parsed_any = true;
+            continue;
+        }
+
+        float fval = -1.0f;
+        if (sscanf(line, "thermal_status %f", &fval) == 1) {
+            out.thermal_headroom = fval; // -1.00 preserved if unsupported
+            parsed_any = true;
+            continue;
+        }
+
+        if (sscanf(line, "audio_active %d", &ival) == 1) {
+            out.audio_active = (ival != 0);
             parsed_any = true;
             continue;
         }

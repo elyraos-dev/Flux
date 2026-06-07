@@ -113,6 +113,31 @@ void apply_performance_profile(bool lite_mode, std::string game_pkg, pid_t game_
     }
 }
 
+void apply_performance_lite_profile(std::string game_pkg, pid_t game_pid) {
+    if (config_store.get_preferences().disable_tweaks) {
+        LOGI_TAG("Profiler", "Tweaks are disabled in config, skipping performance_lite profile");
+        return;
+    }
+
+    set_profiler_env_vars();
+
+    uid_t game_uid = 0;
+    SynthesisCore status;
+    if (synthesis_core_cache.get(status) && status.focused_app == game_pkg && status.focused_uid > 0) {
+        game_uid = status.focused_uid;
+    } else {
+        game_uid = get_uid_by_package_name(game_pkg);
+    }
+
+    write2file(GAME_INFO, game_pkg, " ", game_pid, " ", game_uid, "\n");
+    write2file(PROFILE_MODE, static_cast<int>(PERFORMANCE_LITE_PROFILE), "\n");
+
+    LOGD("Thermal headroom low — applying performance_lite profile for {}", game_pkg);
+    if (system("flux_profiler performance_lite") != 0) {
+        LOGE("Unable to execute profiler changes to performance_lite");
+    }
+}
+
 void apply_balance_profile() {
     if (config_store.get_preferences().disable_tweaks) {
         LOGI_TAG("Profiler", "Tweaks are disabled in config, skipping balance profile");

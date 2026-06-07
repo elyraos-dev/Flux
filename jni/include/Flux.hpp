@@ -41,9 +41,19 @@
 enum FluxProfileMode : char {
     PERFCOMMON,
     PERFORMANCE_PROFILE,
+    PERFORMANCE_LITE_PROFILE, ///< Thermal-throttled tier between performance and balance
     BALANCE_PROFILE,
     POWERSAVE_PROFILE
 };
+
+/// Thermal headroom threshold below which the daemon downgrades from
+/// PERFORMANCE_PROFILE to PERFORMANCE_LITE_PROFILE.
+/// Value in [0.0, 1.0] — 0.20 means "less than 20% headroom remaining".
+static constexpr float THERMAL_LITE_THRESHOLD = 0.20f;
+
+/// Thermal headroom at which the daemon upgrades back to PERFORMANCE_PROFILE.
+/// Hysteresis gap prevents rapid oscillation between tiers.
+static constexpr float THERMAL_RECOVER_THRESHOLD = 0.35f;
 
 struct FluxGameList {
     std::string package_name;
