@@ -83,6 +83,6 @@ if [ -f "$ENABLE_PPM" ]; then
 fi
 
 # Start Flux Daemon
-nohup app_process -Djava.class.path="$MODDIR/synthesiscore.apk" / --nice-name=FluxSysMon com.febricahyaa.synthesiscore.MainKt "$MODULE_CONFIG/system_status" "$MODULE_CONFIG/java.lock" >"$MODULE_CONFIG/sysmon.log" 2>&1 &
+nohup app_process -Djava.class.path="$MODDIR/synthesiscore.apk" / --nice-name=FluxSysMon com.febricahyaa.synthesiscore.MainKt "$MODULE_CONFIG/synthesis_core.json" "$MODULE_CONFIG/java.lock" >"$MODULE_CONFIG/sysmon.log" 2>&1 &
 sleep 1 # Buffer
 fluxd daemon
