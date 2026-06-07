@@ -134,7 +134,8 @@ export const useMonitorStore = defineStore('monitor', () => {
           break
         case 'thermal_status': {
           const v = parseFloat(parts[1])
-          thermalHeadroom.value = isNaN(v) ? -1 : v
+          // parseFloat("NaN") returns NaN — treat as unsupported (-1)
+          thermalHeadroom.value = (isNaN(v) || v < 0) ? -1 : v
           break
         }
         case 'audio_active':
