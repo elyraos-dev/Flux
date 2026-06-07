@@ -132,7 +132,8 @@
         "initializing": "Inicializando",
         "balanced": "Balanceado",
         "powersave": "Ahorro de energía",
-        "performance": "Rendimiento"
+        "performance": "Rendimiento",
+        "performance_lite": "Rendimiento Lite"
     },
     "navigation": {
         "home": "Inicio",

@@ -130,7 +130,8 @@
         "initializing": "Menginisialisasi",
         "balanced": "Seimbang",
         "powersave": "Hemat Daya",
-        "performance": "Performa"
+        "performance": "Performa",
+        "performance_lite": "Performa Lite"
     },
     "toast": {
         "reboot_to_apply": "Mulai ulang perangkat Anda untuk menerapkan perubahan.",

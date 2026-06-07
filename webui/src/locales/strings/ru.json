@@ -126,7 +126,8 @@
         "initializing": "Инициализация",
         "balanced": "Сбалансированный",
         "powersave": "Энергосбережение",
-        "performance": "Производительность"
+        "performance": "Производительность",
+        "performance_lite": "Производительность Lite"
     },
     "navigation": {
         "home": "Главная",

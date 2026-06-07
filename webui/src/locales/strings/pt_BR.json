@@ -126,7 +126,8 @@
         "initializing": "Inicializando",
         "balanced": "Balanceado",
         "powersave": "Economia de energia",
-        "performance": "Desempenho"
+        "performance": "Desempenho",
+        "performance_lite": "Desempenho Lite"
     },
     "navigation": {
         "home": "Início",

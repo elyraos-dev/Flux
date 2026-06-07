@@ -132,7 +132,8 @@
         "initializing": "初始化中",
         "balanced": "平衡模式",
         "powersave": "省电模式",
-        "performance": "性能模式"
+        "performance": "性能模式",
+        "performance_lite": "轻量性能模式"
     },
     "navigation": {
         "home": "主页",

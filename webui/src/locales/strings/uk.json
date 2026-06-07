@@ -124,7 +124,8 @@
         "initializing": "Ініціалізація",
         "balanced": "Збалансований",
         "powersave": "Енергозбереження",
-        "performance": "Продуктивність"
+        "performance": "Продуктивність",
+        "performance_lite": "Продуктивність Lite"
     },
     "toast": {
         "reboot_to_apply": "Перезавантажте ваш пристрій для застосування змін.",

@@ -156,12 +156,15 @@ export const useHomeStore = defineStore('home', () => {
 
   function getProfileKey(profileCode) {
     // Keys must be strings since readFile returns string (e.g. "1", "2", "3")
-    // PERFCOMMON=0, PERFORMANCE_PROFILE=1, BALANCE_PROFILE=2, POWERSAVE_PROFILE=3
+    // Mirrors FluxProfileMode enum in Flux.hpp — keep in sync if enum order changes:
+    // PERFCOMMON=0, PERFORMANCE_PROFILE=1, PERFORMANCE_LITE_PROFILE=2,
+    // BALANCE_PROFILE=3, POWERSAVE_PROFILE=4
     const profileMap = {
       '0': 'initializing',
       '1': 'performance',
-      '2': 'balanced',
-      '3': 'powersave',
+      '2': 'performance_lite',
+      '3': 'balanced',
+      '4': 'powersave',
     }
     return profileMap[String(profileCode)] || 'unknown'
   }

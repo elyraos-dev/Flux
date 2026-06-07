@@ -126,7 +126,8 @@
         "initializing": "يتم البدء",
         "balanced": "متوازن",
         "powersave": "توفير الطاقة",
-        "performance": "الأداء"
+        "performance": "الأداء",
+        "performance_lite": "أداء خفيف"
     },
     "navigation": {
         "home": "الرئيسية",

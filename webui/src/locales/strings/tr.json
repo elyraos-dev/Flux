@@ -73,6 +73,7 @@
         "balanced": "Dengeli",
         "powersave": "Güç tasarrufu",
         "performance": "Performans",
+        "performance_lite": "Performans Lite",
         "initializing": "Başlatılıyor"
     },
     "toast": {

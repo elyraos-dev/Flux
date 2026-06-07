@@ -141,7 +141,8 @@
         "initializing": "Initializing",
         "balanced": "Balanced",
         "powersave": "Powersave",
-        "performance": "Performance"
+        "performance": "Performance",
+        "performance_lite": "Performance Lite"
     },
     "toast": {
         "reboot_to_apply": "Reboot your device to apply changes.",

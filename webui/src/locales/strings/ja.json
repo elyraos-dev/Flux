@@ -126,7 +126,8 @@
         "initializing": "初期化中",
         "balanced": "バランス",
         "powersave": "バッテリー節約",
-        "performance": "パフォーマンス"
+        "performance": "パフォーマンス",
+        "performance_lite": "パフォーマンス Lite"
     },
     "navigation": {
         "home": "ホーム",
