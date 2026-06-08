@@ -24,8 +24,9 @@ CPUFREQ="/sys/devices/system/cpu/cpu0/cpufreq"
   cp "$MODDIR/module.prop.orig" "$MODDIR/module.prop"
 }
 
-# Clear old logs
-rm -f "$MODULE_CONFIG/flux.log" "$MODULE_CONFIG/sysmon.log"
+# Rotate logs: keep previous boot's sysmon.log for crash diagnosis
+[ -f "$MODULE_CONFIG/sysmon.log" ] && mv "$MODULE_CONFIG/sysmon.log" "$MODULE_CONFIG/sysmon.log.prev"
+rm -f "$MODULE_CONFIG/flux.log"
 
 # Parse Governor to use
 chmod 644 "$CPUFREQ/scaling_governor"
