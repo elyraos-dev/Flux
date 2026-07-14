@@ -16,6 +16,10 @@
 
 #pragma once
 
+// <cstdarg> for va_start/va_end. libc++ (the NDK) happens to expose these via <cstdio>, but
+// libstdc++ does not, so the omission only surfaced once these headers were first parsed by a
+// host compiler. Include it explicitly rather than depend on a transitive include.
+#include <cstdarg>
 #include <cstdio>
 #include <memory>
 #include <vector>

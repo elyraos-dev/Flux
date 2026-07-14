@@ -19,6 +19,10 @@
 #include <algorithm>
 #include <cstring>
 #include <stdexcept>
+// start() catches std::system_error. libc++ (the NDK) happens to pull this in via <stdexcept>,
+// but libstdc++ does not, so the omission only surfaced when these sources were first built
+// with a host compiler. Include it explicitly rather than rely on a transitive include.
+#include <system_error>
 
 #include <fcntl.h>
 #include <poll.h>
