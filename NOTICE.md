@@ -58,12 +58,10 @@ Licensed under the MIT License (binary distribution).
 Included as a git submodule at `jni/external/rapidjson`.
 https://github.com/Tencent/rapidjson
 
-### Google Sans Flex (WebUI font)
-Font files under `webui/src/assets/fonts/googlesansflex-*.woff2`.
-"Google Sans" is a proprietary Google typeface. Its redistribution terms are
-NOT Apache-2.0 and are unresolved for this distribution. This component is
-flagged as a licensing risk in `docs/provenance-matrix.md` and is a candidate
-for replacement with an openly licensed typeface before a stable release.
+> **Removed:** The WebUI previously bundled "Google Sans Flex" woff2 font files
+> whose redistribution terms are not Apache-2.0. Those assets and their
+> `@font-face` declarations have been removed; the WebUI now uses a system-first
+> font stack (see `webui/src/assets/main.css`) and ships no bundled typeface.
 
 --------------------------------------------------------------------------------
 
