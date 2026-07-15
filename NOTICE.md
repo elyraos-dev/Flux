@@ -81,6 +81,9 @@ The following are original Flux work and are not derived from Encore Tweaks:
 
   - the Flux V2 Decision Engine (`jni/engine/decision/`), including its
     compatibility adapter;
+  - the Flux V2 telemetry pipeline (`jni/engine/telemetry/`): strict schema-v2
+    decoder, freshness/health model, thread-safe store, and provider-neutral
+    RuntimeSnapshot assembler;
   - the OFD-lock process-lock implementation (`jni/base/LockFile/`);
   - SynthesisCore (the telemetry provider consumed by Flux) and the SynthesisCore
     integration layer (`jni/base/SynthesisCore/`);
