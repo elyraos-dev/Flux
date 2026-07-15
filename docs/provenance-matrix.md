@@ -46,6 +46,26 @@ Rem01Gaming, Apache-2.0 — https://github.com/Rem01Gaming/encore
 | `webui/bun.lock` production deps (Vue, Vue Router, Pinia, Tailwind, kernelsu, webuix) | WebUI runtime dependencies | E | Predominantly MIT, preserved by their packages | NOTICE §3; SBOM at release | Do not vendor-modify | Eligible |
 | `dependencies/synthesiscore.lock`, `prebuilt/synthesiscore.apk` | Pinned SynthesisCore artifact + checksum lock | A/E | SynthesisCore is a separate Flux-owned project consumed as a locked, checksum-verified artifact | NOTICE §4 | N/A | Eligible (checksum-gated in CI) |
 
+## External reference-only material (Category E — reference, not consumed)
+
+The following third-party projects are recorded for architectural risk
+assessment only. **No source, asset, transaction list, class structure,
+protocol, naming, or lifecycle from them may enter Flux** without explicit
+licensing review and user approval. They are not dependencies and are not
+distributed with Flux.
+
+| Reference | What it is | Category | Flux position |
+| --- | --- | --- | --- |
+| Encore `binder_resolver` (https://github.com/Rem01Gaming/binder_resolver) | Standalone resolver that maps Binder Stub transaction field names to integer codes at runtime | E — reference-only | Not imported. Flux's own event-source design (see [`adr/0001-process-event-source.md`](adr/0001-process-event-source.md)) is written independently from AOSP behavior and public Binder docs. Any Flux `BinderContractProbe` is independently designed with an allowlist, validation, checksum/version metadata, and per-API fixtures. |
+| Encore native Binder Monitor / BinderNDK work | Native Binder-based process/foreground monitoring in the Encore daemon | E — reference-only | Not copied. Flux's `ProcessEventSource`/`AndroidBinderTransport` is an independent design; Flux does not mirror its component hierarchy, protocol, or naming. |
+
+SynthesisCore's long-term responsibility is deliberately **narrowed** to
+device/sensor telemetry (thermal, Android thermal status, power saver, charging,
+screen, audio, integer zen mode) plus a foreground *fallback*. Foreground /
+process-lifecycle detection moves to the Flux-native `ProcessEventSource` in a
+later phase. SynthesisCore must not become a monolithic process-monitoring or
+policy service. See ADR 0001.
+
 ## Open compliance items (must close before declaring V2 independence)
 
 1. **Google Sans Flex** — unresolved redistribution license. Replace with an
