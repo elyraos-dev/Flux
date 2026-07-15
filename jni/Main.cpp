@@ -143,15 +143,15 @@ std::atomic<uint64_t> synthesiscore_restart_count{0};
  * SynthesisCore; when a healthy v2 snapshot appears, the policy resumes on its own.
  */
 void watch_java_lock() {
-    java_lock.watch([](bool became_free) {
-        if (became_free) {
-            synthesiscore_down.store(true, std::memory_order_relaxed);
-            synthesiscore_restart_count.fetch_add(1, std::memory_order_relaxed);
-            LOGW("SynthesisCore lock released: telemetry producer exited. "
-                 "Falling back to a safe profile and awaiting its restart.");
-            set_module_description_status("\xE2\x9A\xA0 Telemetry unavailable, running safe profile");
-            signal_daemon_update(); // re-evaluate the policy now, do not wait for a tick
-        }
+    java_lock.watch([] {
+        // Fires only on the free transition: SynthesisCore released its lock, i.e.
+        // the telemetry producer exited.
+        synthesiscore_down.store(true, std::memory_order_relaxed);
+        synthesiscore_restart_count.fetch_add(1, std::memory_order_relaxed);
+        LOGW("SynthesisCore lock released: telemetry producer exited. "
+             "Falling back to a safe profile and awaiting its restart.");
+        set_module_description_status("\xE2\x9A\xA0 Telemetry unavailable, running safe profile");
+        signal_daemon_update(); // re-evaluate the policy now, do not wait for a tick
     });
 }
 

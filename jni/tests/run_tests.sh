@@ -52,6 +52,7 @@ CXXFLAGS=(
     -I"${JNI_DIR}/base/SynthesisCore"
     -I"${JNI_DIR}/base/InotifyWatcher"
     -I"${JNI_DIR}/base/ProfilePolicy"
+    -I"${JNI_DIR}/base/LockFile"
 )
 
 LDFLAGS=(-pthread)
@@ -66,10 +67,12 @@ SOURCES=(
     "${SCRIPT_DIR}/TelemetryParserTest.cpp"
     "${SCRIPT_DIR}/ProfilePolicyTest.cpp"
     "${SCRIPT_DIR}/InotifyIntegrationTest.cpp"
+    "${SCRIPT_DIR}/LockFileTest.cpp"
     # Production sources, compiled as-is. Not copies.
     "${JNI_DIR}/base/SynthesisCore/SynthesisCore.cpp"
     "${JNI_DIR}/base/ProfilePolicy/ProfilePolicy.cpp"
     "${JNI_DIR}/base/InotifyWatcher/InotifyWatcher.cpp"
+    "${JNI_DIR}/base/LockFile/LockFile.cpp"
 )
 
 mkdir -p "${BUILD_DIR}"

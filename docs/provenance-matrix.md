@@ -42,7 +42,7 @@ Rem01Gaming, Apache-2.0 — https://github.com/Rem01Gaming/encore
 | `gamelist.txt` | Game-detection package list | C | Data adapted from Encore's game list | NOTICE §1 | Pending — to be regenerated/curated independently | Ships with attribution |
 | `jni/external/spdlog` | Logging library (submodule) | E | Upstream MIT | NOTICE §2 (spdlog) | Do not modify | Eligible |
 | `jni/external/rapidjson` | JSON parsing (submodule) | E | Upstream MIT | NOTICE §2 (RapidJSON) | Do not modify | Eligible |
-| `webui/src/assets/fonts/googlesansflex-*.woff2` | WebUI typeface | E (risk) | "Google Sans" is a proprietary Google typeface; redistribution terms are **not** Apache-2.0 and are unresolved | NOTICE §2 (Google Sans Flex) | **Licensing risk** — replace with an openly licensed typeface before stable release | **Blocked for stable release** until resolved |
+| ~~`webui/src/assets/fonts/googlesansflex-*.woff2`~~ (removed) | WebUI typeface | E (risk) — **resolved** | "Google Sans" is a proprietary Google typeface; redistribution terms are not Apache-2.0 | n/a (removed) | **Done** — assets and `@font-face` rules deleted; WebUI uses a system-first font stack and bundles no typeface. Rebuilt `dist` verified to contain zero font files | Eligible (no bundled font) |
 | `webui/bun.lock` production deps (Vue, Vue Router, Pinia, Tailwind, kernelsu, webuix) | WebUI runtime dependencies | E | Predominantly MIT, preserved by their packages | NOTICE §3; SBOM at release | Do not vendor-modify | Eligible |
 | `dependencies/synthesiscore.lock`, `prebuilt/synthesiscore.apk` | Pinned SynthesisCore artifact + checksum lock | A/E | SynthesisCore is a separate Flux-owned project consumed as a locked, checksum-verified artifact | NOTICE §4 | N/A | Eligible (checksum-gated in CI) |
 
@@ -68,10 +68,13 @@ policy service. See ADR 0001.
 
 ## Open compliance items (must close before declaring V2 independence)
 
-1. **Google Sans Flex** — unresolved redistribution license. Replace with an
-   openly licensed typeface (Category E risk). **Release-blocking.**
-2. **`jni/base/LockFile`** — provenance-unresolved (Category B/D). Confirm no
-   derived expression and add a Flux header, or replace.
+1. ~~**Google Sans Flex** — unresolved redistribution license.~~ **Resolved:**
+   font assets and `@font-face` rules removed; WebUI uses a system-first font
+   stack and bundles no typeface (rebuilt `dist` verified font-free).
+2. ~~**`jni/base/LockFile`** — provenance-unresolved (Category B/D).~~
+   **Resolved:** replaced with an independent Flux implementation built on Linux
+   OFD locks (`fcntl(F_OFD_SETLK)`), with an Apache-2.0/Flux header and host
+   tests. See the LockFile row above.
 3. All **Category C** components still ship under Apache-2.0 with Encore
    attribution. Attribution is retired *per component* only after independent
    reimplementation is validated and no derived code/assets/structure/expression
