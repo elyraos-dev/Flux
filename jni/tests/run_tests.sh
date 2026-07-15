@@ -61,7 +61,10 @@ CXXFLAGS=(
 LDFLAGS=(-pthread)
 
 if [ "${SANITIZE}" = "1" ]; then
+    # The commas belong to the -fsanitize=address,undefined compiler flag, not array syntax.
+    # shellcheck disable=SC2054
     CXXFLAGS+=(-fsanitize=address,undefined -fno-omit-frame-pointer)
+    # shellcheck disable=SC2054
     LDFLAGS+=(-fsanitize=address,undefined)
 fi
 
