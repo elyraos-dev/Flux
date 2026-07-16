@@ -65,5 +65,14 @@ jobs:
         with:
           scandir: './jni/tests'
 
+      # The build/link/package proof scripts gate what ships, so they are held to the same
+      # standard as the code they check: a quoting bug in a verifier is a verifier that passes
+      # when it should fail. Scoped to .github/scripts — scripts/ carries pre-existing findings
+      # in the device runtime scripts, which are a separate cleanup and not this phase's work.
+      - name: ShellCheck the CI scripts
+        uses: ludeeus/action-shellcheck@master
+        with:
+          scandir: './.github/scripts'
+
       - name: actionlint
         uses: raven-actions/actionlint@v2

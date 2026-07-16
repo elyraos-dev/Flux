@@ -1,0 +1,113 @@
+name: Telemetry proof
+
+# Final build/link/package proof for the Flux V2 telemetry runtime (Stage 1, Increment 3).
+#
+# Host tests prove the telemetry logic behaves; this workflow proves the *shipped artifact* is
+# what we claim it is. Those are different questions, and only the second one can catch a
+# resurrected translation unit, a stale object, an artifact swapped under a matching filename,
+# or a build that quietly stopped linking a component in.
+#
+# It is deliberately separate from build.yml:
+#
+#   - build.yml owns publishing. It carries `contents: write` and a dispatch-gated release
+#     step. This workflow proves things, so it stays read-only and has no release path at all
+#     — there is nothing here to mis-trigger.
+#   - It needs NO secrets: no signing key, no token, no Telegram credentials.
+#
+# It repeats build.yml's ndk-build rather than consuming its artifact: cross-workflow artifact
+# download needs a run id that a pull_request event cannot resolve cleanly, and an independent
+# build is stronger evidence anyway — the proof never depends on another workflow's output.
+
+on:
+  pull_request:
+    branches: [ main ]
+  push:
+    branches: [ main ]
+    paths:
+      - 'jni/**'
+      - 'module/**'
+      - 'scripts/**'
+      - 'prebuilt/**'
+      - 'dependencies/**'
+      - '.github/scripts/**'
+      - '.github/workflows/telemetry-proof.yml'
+  workflow_dispatch:
+
+# Least privilege: this workflow only ever reads the repository. It cannot publish a release,
+# move a tag, or write an artifact to the repo even if something in it went wrong.
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  telemetry-proof:
+    name: Link, symbol and package proof
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      # TODO: pin actions to full commit SHAs via Dependabot (repo convention: tags for now).
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          # compile_zip.sh derives versionCode from `git rev-list --count HEAD`; a shallow
+          # checkout would silently stamp the wrong number.
+          fetch-depth: 0
+          submodules: true
+
+      - name: NDK Setup
+        uses: nttld/setup-ndk@v1
+        with:
+          ndk-version: r29
+
+      - name: Bun Setup
+        uses: oven-sh/setup-bun@v2
+
+      # Integrity: the bundled APK is the pinned bytes.
+      - name: Verify SynthesisCore artifact integrity
+        run: bash scripts/verify-synthesiscore.sh
+
+      # Provenance: those bytes really are schema v2, proven from the artifact's own metadata
+      # rather than from the lock's claims or the file's name.
+      - name: Prove SynthesisCore schema-v2 compatibility
+        run: bash .github/scripts/verify-schema-provenance.sh
+
+      - name: Build Flux Daemon
+        run: ndk-build -j"$(nproc --all)"
+
+      # The core of this workflow: what is actually linked into fluxd.
+      - name: Prove V2 telemetry link and symbols
+        run: bash .github/scripts/verify-native-telemetry.sh
+
+      # Build the WebUI so the package under validation is the package that ships, not a
+      # stripped-down approximation of it.
+      - name: Build WebUI
+        working-directory: webui
+        run: |
+          bun install
+          bun run build
+          cp -r ./dist/* ../module/webroot
+
+      - name: Compile Flashable Zip
+        id: compileZip
+        run: bash .github/scripts/compile_zip.sh
+
+      - name: Validate flashable package
+        env:
+          ZIP: ${{ steps.compileZip.outputs.zipName }}
+        run: bash .github/scripts/verify-package.sh "$ZIP"
+
+      # Kept for inspection when a proof fails. This is an Actions artifact for humans, not a
+      # release: nothing here uploads to a tag or a release.
+      - name: Upload proof artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: telemetry-proof-${{ github.run_id }}
+          path: |
+            obj/local/*/fluxd
+            libs/*/fluxd
+          retention-days: 7
+          if-no-files-found: warn
