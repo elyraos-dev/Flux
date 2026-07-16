@@ -117,8 +117,8 @@ jobs:
       - name: Upload To Telegram
         if: env.CHAT_ID != '' && env.BOT_TOKEN != ''
         env:
-          CHAT_ID: ${{ secrets.CHAT_ID }}
-          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+          CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
           COMMIT_URL: ${{ github.event.head_commit.url }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
