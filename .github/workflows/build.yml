@@ -15,6 +15,11 @@ on:
         type: boolean
         required: false
         default: false
+      notify_telegram:
+        description: 'Send the verified result to Telegram'
+        type: boolean
+        required: false
+        default: false
   push:
     branches:
       - main
@@ -114,16 +119,54 @@ jobs:
               "${FLAGS[@]}"
           fi
 
-      - name: Upload To Telegram
-        if: env.CHAT_ID != '' && env.BOT_TOKEN != ''
+      # ── Notification ──────────────────────────────────────────────────────────
+      # Decide whether this run may notify, using only the event and repository variables. No
+      # secret is referenced here, so the decision is reachable on every run — including the
+      # pull_request runs that must never see a credential.
+      #
+      # The previous condition (`env.CHAT_ID != '' && env.BOT_TOKEN != ''`) could not do this
+      # job: it read the step's own secret env, so the secrets were already bound to the step
+      # before the gate was consulted, and it treated "configured" as "permitted". Every PR
+      # build therefore called the Telegram API. Nothing was ever posted only because the
+      # configured chat id does not resolve — fixing that id would have started publishing
+      # every pull request to the channel.
+      - name: Resolve Telegram notification policy
+        id: telegram_policy
+        if: always()
         env:
-          CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-          BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          EVENT_NAME: ${{ github.event_name }}
+          FLUX_TELEGRAM_ENABLED: ${{ vars.FLUX_TELEGRAM_ENABLED }}
+          FLUX_TELEGRAM_BUILD_ENABLED: ${{ vars.FLUX_TELEGRAM_BUILD_ENABLED }}
+          FLUX_TELEGRAM_RELEASE_ENABLED: ${{ vars.FLUX_TELEGRAM_RELEASE_ENABLED }}
+          NOTIFY_TELEGRAM_INPUT: ${{ inputs.notify_telegram || false }}
+        run: bash .github/scripts/telegram_policy.sh
+
+      - name: Upload To Telegram
+        id: telegram_send
+        # Layered, and deliberately redundant:
+        #   1. success()  — a failed build or a failed release never notifies.
+        #   2. the literal pull_request check — the boundary that matters most is stated at the
+        #      step itself, so it holds even if the policy script is wrong.
+        #   3. the resolved policy — variables and the manual opt-in.
+        # Secrets below are bound only if all three pass, so a pull_request run never has them.
+        if: >-
+          success()
+          && github.event_name != 'pull_request'
+          && steps.telegram_policy.outputs.should_send == 'true'
+        # Scoped to this step only: telling a chat about a build is not part of building it, and
+        # a notification error must never be reported as a build error or invalidate a release
+        # that was already published. This is not a job-wide continue-on-error and must not
+        # become one — that would hide real build and packaging failures.
+        continue-on-error: true
+        env:
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
           COMMIT_URL: ${{ github.event.head_commit.url }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
           TITLE: Flux Tweaks
+          ZIP: ${{ steps.compileZip.outputs.zipName }}
         run: |
           VERSION=$(git rev-list --count HEAD)
           export VERSION
-          bash .github/scripts/telegram_bot.sh ${{ steps.compileZip.outputs.zipName }}
+          bash .github/scripts/telegram_bot.sh "$ZIP"
