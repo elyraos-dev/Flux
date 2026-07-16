@@ -54,7 +54,7 @@ CXXFLAGS=(
     -I"${JNI_DIR}/base/LockFile"
     -I"${JNI_DIR}/engine/decision"
     -I"${JNI_DIR}/engine/telemetry"
-    -I"${JNI_DIR}/engine/execution"
+    -I"${JNI_DIR}/engine/execution" -I"${JNI_DIR}/device"
 )
 
 LDFLAGS=(-pthread)
@@ -77,6 +77,8 @@ SOURCES=(
     "${SCRIPT_DIR}/ExecutionEngineTest.cpp"
     "${SCRIPT_DIR}/ZenControllerTest.cpp"
     "${SCRIPT_DIR}/SysfsNodeBackendTest.cpp"
+    "${SCRIPT_DIR}/DeviceDescriptorTest.cpp"
+    "${SCRIPT_DIR}/DevicePackDryRunTest.cpp"
     "${SCRIPT_DIR}/TelemetryRuntimeTest.cpp"
     "${SCRIPT_DIR}/RuntimeIntegrationTest.cpp"
     # Production sources, compiled as-is. Not copies.
@@ -93,6 +95,9 @@ SOURCES=(
     "${JNI_DIR}/engine/execution/ExecutionEngine.cpp"
     "${JNI_DIR}/engine/execution/ZenController.cpp"
     "${JNI_DIR}/engine/execution/SysfsNodeBackend.cpp"
+    "${JNI_DIR}/engine/execution/CapabilityState.cpp"
+    "${JNI_DIR}/engine/execution/DeviceDescriptor.cpp"
+    "${JNI_DIR}/device/DevicePacks.cpp"
 )
 
 mkdir -p "${BUILD_DIR}"
