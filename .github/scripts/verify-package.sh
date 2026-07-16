@@ -296,6 +296,10 @@ fi
 # worse than no verifier, so the stripped text is materialised first and matched without a pipe.
 ENDPOINT_HITS=""
 while IFS= read -r f; do
+	# Skip binaries up front (grep -I reports no match on them). A URL cannot hide in fluxd or
+	# the APK as *code* we could act on, and feeding them to sed only makes bash warn about
+	# discarding null bytes for every binary in the package.
+	grep -Iq . "${f}" 2>/dev/null || continue
 	stripped="$(sed -E 's@(^|[[:space:]])(#|//).*$@@' "${f}" 2>/dev/null || true)"
 	if grep -qIE 'https?://[^"[:space:]]*(rem01|encore)' <<<"${stripped}"; then
 		ENDPOINT_HITS="${ENDPOINT_HITS}${f}"$'\n'
