@@ -20,6 +20,7 @@
 
 #pragma once
 
+#include <cstdint>
 #include <cstdio>
 #include <cstdlib>
 #include <string>
@@ -89,3 +90,12 @@ void set_zen_mode(int zen_mode);
  * @note It is only intended for use in an Android environment.
  */
 void set_do_not_disturb(bool do_not_disturb);
+
+/**
+ * @brief Monotonic milliseconds. The clock every Flux freshness decision is judged against.
+ *
+ * Lives here, not in a telemetry module: it is a generic utility, and freshness must never be
+ * measured against a wall clock that can jump. Previously it was defined inside the legacy
+ * SynthesisCore reader, which coupled a plain clock to an implementation being removed.
+ */
+int64_t flux_monotonic_ms();

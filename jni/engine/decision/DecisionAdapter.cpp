@@ -64,39 +64,6 @@ TransitionReason to_transition_reason(DecisionReason reason) {
     return TransitionReason::None;
 }
 
-RuntimeSnapshot build_runtime_snapshot(TelemetryHealth health,
-                                       const std::optional<TelemetrySnapshot> &snapshot) {
-    RuntimeSnapshot rt;
-    switch (health) {
-        case TelemetryHealth::Healthy: rt.health = DataHealth::Healthy; break;
-        case TelemetryHealth::Stale: rt.health = DataHealth::Stale; break;
-        case TelemetryHealth::Offline: rt.health = DataHealth::Offline; break;
-    }
-
-    if (!snapshot) return rt; // no data: safe defaults (Offline handled by the engine)
-
-    const TelemetrySnapshot &s = *snapshot;
-
-    // Only a validated (available + valid + non-NaN) reading is passed through; the engine
-    // never sees a sentinel. has_thermal() already excludes NaN.
-    if (s.has_thermal()) {
-        rt.thermal = ThermalReading{s.thermal_headroom, s.thermal_status};
-    }
-
-    // Unavailable providers degrade to the safe interpretation rather than a false reading.
-    rt.screen_awake = s.screen_available ? s.screen_awake : true;
-    rt.battery_saver = s.power_available && s.battery_saver;
-    rt.charging = s.charging_available && s.charging;
-    rt.audio_active = s.audio_available && s.audio_active;
-    return rt;
-}
-
-CapabilitySnapshot build_capabilities(const std::optional<TelemetrySnapshot> &snapshot) {
-    CapabilitySnapshot caps;
-    caps.thermal_supported = snapshot && snapshot->thermal_available;
-    return caps;
-}
-
 } // namespace flux::engine::compat
 
 PolicyDecision FluxDecisionService::decide(const flux::engine::DecisionInputs &inputs,
@@ -121,22 +88,4 @@ PolicyDecision FluxDecisionService::decide(const flux::engine::DecisionInputs &i
     out.changed = d.transition_required;
     out.safety_driven = d.safety_driven;
     return out;
-}
-
-PolicyDecision FluxDecisionService::decide(const PolicyInputs &inputs, PolicyState &state,
-                                           int64_t now_ms) {
-    using namespace flux::engine;
-
-    // Translate the legacy shape, then take the single V2 evaluation path above. Keeping one
-    // invocation path is what makes the parity harness meaningful: it exercises the same engine
-    // call the live daemon makes, not a parallel copy of it.
-    DecisionInputs in;
-    in.runtime = compat::build_runtime_snapshot(inputs.health, inputs.snapshot);
-    in.capabilities = compat::build_capabilities(inputs.snapshot);
-    in.session.in_session = inputs.in_game_session;
-    in.session.package = inputs.active_package;
-    in.session.forces_lite = inputs.game_forces_lite;
-    in.shutdown_requested = inputs.shutdown_requested;
-
-    return decide(in, state, now_ms);
 }

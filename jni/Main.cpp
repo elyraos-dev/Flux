@@ -335,30 +335,6 @@ static void handle_game_exit(DaemonState &state) {
  * is pure and covered by host tests. Everything here is the side effects: applying the profile,
  * driving zen, and recording what happened and why.
  */
-/**
- * @brief Map V2 telemetry health onto the daemon's legacy record vocabulary.
- *
- * Only the transition-history/diagnostics record still speaks the legacy enum. The richer V2
- * states collapse the same way the Decision Engine sees them: Delayed and Stale both mean "hold,
- * never promote", while Invalid/Unavailable/UnsupportedSchema all mean "no trustworthy data".
- *
- * Removal condition: delete together with TransitionRecord once the record/diagnostics types are
- * V2-native (Diagnostics phase).
- */
-[[nodiscard]] static TelemetryHealth to_record_health(flux::telemetry::TelemetryHealth health) {
-    switch (health) {
-        case flux::telemetry::TelemetryHealth::Healthy: return TelemetryHealth::Healthy;
-        case flux::telemetry::TelemetryHealth::Delayed:
-        case flux::telemetry::TelemetryHealth::Stale:
-            return TelemetryHealth::Stale;
-        case flux::telemetry::TelemetryHealth::Invalid:
-        case flux::telemetry::TelemetryHealth::Unavailable:
-        case flux::telemetry::TelemetryHealth::UnsupportedSchema:
-            return TelemetryHealth::Offline;
-    }
-    return TelemetryHealth::Offline;
-}
-
 static void evaluate_and_apply(DaemonState &state, int64_t now_ms) {
     using flux::telemetry::RawSnapshot;
     using flux::telemetry::RuntimeSnapshotAssembler;
@@ -503,7 +479,7 @@ static void evaluate_and_apply(DaemonState &state, int64_t now_ms) {
     record.reason       = decision.reason;
     record.monotonic_ms = now_ms;
     record.package      = state.active_package;
-    record.health       = to_record_health(health);
+    record.health       = health;
     record.applied      = applied;
     record.apply_error  = apply_error;
     if (snapshot && snapshot->has_thermal()) {

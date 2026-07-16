@@ -26,7 +26,7 @@
 #include <string>
 
 #include <Flux.hpp>
-#include <SynthesisCore.hpp>
+#include <TelemetrySnapshot.hpp> // flux::telemetry::TelemetryHealth (canonical)
 
 /**
  * @file ProfilePolicy.hpp
@@ -69,57 +69,7 @@ enum class TransitionReason {
 const char *transition_reason_string(TransitionReason reason);
 const char *profile_mode_string(FluxProfileMode mode);
 
-/**
- * @brief Thermal thresholds, in Android headroom units.
- *
- * Headroom is *higher when hotter*: 0.0 is no thermal pressure and 1.0 is the severe
- * throttling threshold. Every comparison below therefore reads "greater than or equal means
- * hotter", which is the exact inverse of what the previous implementation did.
- */
-struct ThermalThresholds {
-    /// At or above this, drop from Performance to Performance Lite. Chosen below 1.0 so the
-    /// downgrade lands *before* the platform itself starts throttling, not after.
-    float lite_enter = 0.85f;
 
-    /// At or below this, Lite may recover to Performance. The gap to lite_enter is the
-    /// hysteresis band: inside it, whatever tier is current stays current.
-    float lite_exit = 0.70f;
-
-    /// At or above this, treat as an emergency regardless of session: the device is past the
-    /// severe threshold and a game profile is not defensible.
-    float emergency = 1.15f;
-
-    /// Discrete status at or above which we downgrade even if the headroom float disagrees.
-    int pressure_status = THERMAL_STATUS_SEVERE;
-
-    /// Discrete status at or above which we treat it as an emergency.
-    int emergency_status = THERMAL_STATUS_CRITICAL;
-
-    /// Minimum dwell between thermal-driven transitions, to stop tier flapping.
-    int64_t switch_debounce_ms = 5000;
-
-    /// Recovery is additionally delayed: cooling down is not evidence of staying cool.
-    int64_t recovery_hold_ms = 15000;
-
-    [[nodiscard]] bool valid() const {
-        return lite_exit < lite_enter && lite_enter <= emergency && lite_exit >= 0.0f &&
-               switch_debounce_ms >= 0 && recovery_hold_ms >= 0;
-    }
-};
-
-/** Everything the policy needs to decide. No I/O, no globals. */
-struct PolicyInputs {
-    TelemetryHealth health = TelemetryHealth::Offline;
-    std::optional<TelemetrySnapshot> snapshot;
-
-    bool in_game_session = false;
-    std::string active_package;
-
-    /// Game entry requests Lite, or the user enabled enforce_lite_mode globally.
-    bool game_forces_lite = false;
-
-    bool shutdown_requested = false;
-};
 
 /** Policy state that persists between evaluations. */
 struct PolicyState {
@@ -156,7 +106,8 @@ struct TransitionRecord {
     std::string package;
     float thermal_headroom = 0.0f;
     bool thermal_valid     = false;
-    TelemetryHealth health = TelemetryHealth::Offline;
+    /// Canonical V2 health. There is deliberately no second health enum in Flux.
+    flux::telemetry::TelemetryHealth health = flux::telemetry::TelemetryHealth::Unavailable;
 
     bool applied      = true;  ///< false when the apply step reported failure
     std::string apply_error;
@@ -185,47 +136,3 @@ private:
     std::deque<TransitionRecord> records_;
 };
 
-/**
- * @brief Selects the profile to run.
- *
- * ## Priority order
- *
- * Evaluated top-down; the first rule that fires wins.
- *
- *   1. shutdown requested
- *   2. thermal emergency          — at/past severe throttling
- *   3. telemetry offline          — no producer; fall back to safe
- *   4. battery saver
- *   5. screen off
- *   6. thermal pressure           — inside a game session, downgrade to Lite
- *   7. game session               — Performance (or Lite if configured)
- *   8. default                    — Balance
- *
- * Telemetry that is *stale* (rather than offline) does not select a profile of its own: it
- * acts as a veto on any promotion, so a late snapshot can hold the current profile but can
- * never raise it.
- *
- * ## The audio guard
- *
- * Audio activity suppresses only *cosmetic* transitions — it stops a profile from churning
- * mid-playback for a reason that does not matter. It is checked last and it is ignored
- * entirely when `safety_driven` is set, so it can never defer a thermal downgrade, a battery
- * saver switch or a telemetry fallback. Previously the audio check ran *first* and returned
- * early, which meant a device playing game audio would sit in Performance at any temperature.
- */
-class ProfilePolicy {
-public:
-    explicit ProfilePolicy(ThermalThresholds thresholds = {}) : thresholds_(thresholds) {}
-
-    /** Evaluate the policy. @p state is advanced in place. */
-    [[nodiscard]] PolicyDecision evaluate(const PolicyInputs &inputs, PolicyState &state, int64_t now_ms) const;
-
-    [[nodiscard]] const ThermalThresholds &thresholds() const { return thresholds_; }
-
-private:
-    ThermalThresholds thresholds_;
-
-    /// Classify thermal pressure from a snapshot. Returns nullopt when thermal cannot be
-    /// judged at all (unsupported device, or no valid sample).
-    [[nodiscard]] std::optional<TransitionReason> classify_thermal(const TelemetrySnapshot &snap) const;
-};
