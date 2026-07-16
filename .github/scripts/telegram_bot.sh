@@ -10,17 +10,27 @@ $COMMIT_MESSAGE
 "
 
 file="$1"
-thumbnail="$GITHUB_WORKSPACE/website/docs/public/logo.webp"
 
 if [ ! -f "$file" ]; then
-	echo "error: File not found" >&2
+	echo "error: File not found: $file" >&2
 	exit 1
 fi
 
-curl -s "https://api.telegram.org/bot$BOT_TOKEN/sendDocument" \
+# The thumbnail is optional and purely cosmetic. Telegram requires a JPEG here, and the asset
+# is not guaranteed to exist in every checkout, so it is attached only when the file is present.
+# Previously this pointed at a hard-coded path that no longer exists, and curl aborted the whole
+# upload with exit 26 (read error) when the file was missing. Set TELEGRAM_THUMBNAIL to a real
+# JPEG to re-enable it.
+thumb_args=()
+thumbnail="${TELEGRAM_THUMBNAIL:-}"
+if [ -n "$thumbnail" ] && [ -f "$thumbnail" ]; then
+	thumb_args=(-F thumb=@"$thumbnail")
+fi
+
+curl -sS "https://api.telegram.org/bot$BOT_TOKEN/sendDocument" \
 	-F document=@"$file" \
 	-F chat_id="$CHAT_ID" \
 	-F "disable_web_page_preview=true" \
 	-F "parse_mode=markdownv2" \
-	-F thumb=@"$thumbnail" \
+	"${thumb_args[@]}" \
 	-F caption="$msg"
