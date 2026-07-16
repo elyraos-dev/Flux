@@ -3,9 +3,9 @@ LOCAL_PATH := $(call my-dir)
 include $(CLEAR_VARS)
 LOCAL_MODULE := fluxd
 
-LOCAL_C_INCLUDES := $(LOCAL_PATH)/include
+LOCAL_C_INCLUDES := $(LOCAL_PATH)/include $(LOCAL_PATH)/base/ProfilePolicy
 
-LOCAL_STATIC_LIBRARIES := rapidjson spdlog FluxTelemetry FluxDecisionEngine FluxExecution ProfilePolicy SynthesisCore PIDTracker InotifyWatcher LockFile GameRegistry FluxUtility DeviceInfo
+LOCAL_STATIC_LIBRARIES := rapidjson spdlog FluxTelemetry FluxDecisionEngine FluxExecution PIDTracker InotifyWatcher LockFile GameRegistry FluxUtility DeviceInfo
 
 LOCAL_SRC_FILES := $(wildcard $(LOCAL_PATH)/*.cpp)
 LOCAL_SRC_FILES := $(LOCAL_SRC_FILES:$(LOCAL_PATH)/%=%)

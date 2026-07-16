@@ -49,7 +49,6 @@ CXXFLAGS=(
     -I"${SCRIPT_DIR}/stubs"
     -I"${SCRIPT_DIR}"
     -I"${JNI_DIR}/include"
-    -I"${JNI_DIR}/base/SynthesisCore"
     -I"${JNI_DIR}/base/InotifyWatcher"
     -I"${JNI_DIR}/base/ProfilePolicy"
     -I"${JNI_DIR}/base/LockFile"
@@ -70,19 +69,16 @@ fi
 
 SOURCES=(
     "${SCRIPT_DIR}/TestMain.cpp"
-    "${SCRIPT_DIR}/TelemetryParserTest.cpp"
-    "${SCRIPT_DIR}/ProfilePolicyTest.cpp"
     "${SCRIPT_DIR}/InotifyIntegrationTest.cpp"
     "${SCRIPT_DIR}/LockFileTest.cpp"
     "${SCRIPT_DIR}/DecisionEngineTest.cpp"
-    "${SCRIPT_DIR}/DecisionParityTest.cpp"
+    "${SCRIPT_DIR}/DecisionVectorsTest.cpp"
     "${SCRIPT_DIR}/TelemetryPipelineTest.cpp"
     "${SCRIPT_DIR}/ExecutionEngineTest.cpp"
     "${SCRIPT_DIR}/ZenControllerTest.cpp"
+    "${SCRIPT_DIR}/TelemetryRuntimeTest.cpp"
     "${SCRIPT_DIR}/RuntimeIntegrationTest.cpp"
     # Production sources, compiled as-is. Not copies.
-    "${JNI_DIR}/base/SynthesisCore/SynthesisCore.cpp"
-    "${JNI_DIR}/base/ProfilePolicy/ProfilePolicy.cpp"
     "${JNI_DIR}/base/InotifyWatcher/InotifyWatcher.cpp"
     "${JNI_DIR}/base/LockFile/LockFile.cpp"
     "${JNI_DIR}/engine/decision/DecisionEngine.cpp"
@@ -92,6 +88,7 @@ SOURCES=(
     "${JNI_DIR}/engine/telemetry/RuntimeSnapshotAssembler.cpp"
     "${JNI_DIR}/engine/telemetry/AtomicStatusWatcher.cpp"
     "${JNI_DIR}/engine/telemetry/TelemetryIngestor.cpp"
+    "${JNI_DIR}/engine/telemetry/TelemetryRuntime.cpp"
     "${JNI_DIR}/engine/execution/ExecutionEngine.cpp"
     "${JNI_DIR}/engine/execution/ZenController.cpp"
 )

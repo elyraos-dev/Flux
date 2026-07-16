@@ -20,6 +20,8 @@
 
 #include "FluxUtility.hpp"
 
+#include <chrono>
+
 #include <ModuleProperty.hpp>
 #include <ShellUtility.hpp>
 
@@ -102,4 +104,9 @@ void notify(const char *message) {
     } else {
         LOGE("fork failed: {}", strerror(errno));
     }
+}
+
+int64_t flux_monotonic_ms() {
+    using namespace std::chrono;
+    return duration_cast<milliseconds>(steady_clock::now().time_since_epoch()).count();
 }

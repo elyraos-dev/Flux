@@ -30,15 +30,15 @@ Rem01Gaming, Apache-2.0 — https://github.com/Rem01Gaming/encore
 | --- | --- | --- | --- | --- | --- | --- |
 | `jni/Main.cpp`, `jni/Profiler.*`, `jni/InotifyHandler.*`, `jni/FluxCLI.*`, `jni/FluxConfigStore.*`, `jni/DeviceMitigationStore.*` | Native daemon entry, profiler loop, inotify handling, CLI, config/mitigation stores | C | Structure, control flow, and identifiers trace to the Encore daemon | Dual header (Rem01Gaming + FebriCahyaa + "Adapted from Encore Tweaks / Modified by the Flux project"); NOTICE §1 | **Pending** — to be replaced by the V2 engine (`telemetry`/`decision`/`execution`/`supervision`) | Ships under Apache-2.0 with attribution; not yet independent |
 | `jni/base/DeviceInfo/*`, `jni/base/GameRegistry/*`, `jni/base/InotifyWatcher/*`, `jni/base/PIDTracker/*`, `jni/base/FluxUtility/*` | Device probing, game registry, inotify watcher, PID tracking, shell/process utilities | C | Adapted from corresponding Encore modules | Dual header; NOTICE §1 | **Pending** | Ships under Apache-2.0 with attribution |
-| `jni/base/ProfilePolicy/*` | Legacy profile-selection policy + diagnostic string helpers | C | Adapted from Encore | Dual header; NOTICE §1 | **Off the runtime decision path** — `ProfilePolicy::evaluate` is no longer called; replaced by the V2 `DecisionEngine` via `FluxDecisionService`. Retained only as a parity fixture and for `transition_reason_string`/`profile_mode_string`, pending the Diagnostics-ownership phase | Ships with attribution until fully retired |
+| `jni/base/ProfilePolicy/ProfilePolicy.hpp` | Daemon record/diagnostic vocabulary (`PolicyState`, `PolicyDecision`, `TransitionRecord`) + enum-to-string helpers | C | Adapted from Encore | Dual header; NOTICE §1 | **Encore-derived policy logic removed.** `ProfilePolicy::evaluate`, `PolicyInputs` and `ThermalThresholds` were deleted in the Stage 1 telemetry cutover; `ProfilePolicy.cpp` no longer exists and no `ProfilePolicy` library is built. What remains is a header-only vocabulary the daemon's record path still speaks, retired in the Diagnostics-ownership phase | Ships with attribution until the remaining vocabulary is retired |
 | `jni/engine/decision/DecisionEngine.{hpp,cpp}` | **Flux V2 Decision Engine** — deterministic, side-effect-free policy | A | Flux-authored from the Flux spec, RuntimeSnapshot semantics, and SynthesisCore v2; own vocabulary (TargetProfile/DecisionReason/DecisionPriority); 29 host tests | Flux copyright only; NOTICE §4 | N/A — this is the replacement | Eligible |
-| `jni/engine/decision/DecisionAdapter.{hpp,cpp}` | Short-lived compat boundary (daemon legacy types ⇄ V2 engine) | A | Flux-authored; documented purpose + removal condition; parity-tested | Flux copyright only | Remove when daemon record/diagnostics types are V2-native | Eligible |
-| `jni/engine/telemetry/*` | **Flux V2 telemetry pipeline** — strict decoder, freshness/health, thread-safe store, provider-neutral RuntimeSnapshot assembler | A | Flux-authored from the SynthesisCore v2 contract; independent of `jni/base/SynthesisCore` (not translated); 35 host tests | Flux copyright only; NOTICE §4 | Supersedes the legacy reader once the runtime is migrated onto it (migration in progress) | Eligible |
+| `jni/engine/decision/DecisionAdapter.{hpp,cpp}` | Short-lived compat boundary (daemon record vocabulary ⇄ V2 engine) | A | Flux-authored; documented purpose + removal condition; covered by behavioural vectors | Flux copyright only | Narrowed in Stage 1: the telemetry conversion helpers (`build_runtime_snapshot`, `build_capabilities`) and the legacy `decide(PolicyInputs, …)` overload are deleted — only profile/reason enum mapping remains. Remove entirely when daemon record/diagnostics types are V2-native | Eligible |
+| `jni/engine/telemetry/*` | **Flux V2 telemetry pipeline** — strict decoder, freshness/health, thread-safe store, provider-neutral RuntimeSnapshot assembler, live `TelemetryRuntime` | A | Flux-authored from the SynthesisCore v2 contract; was never a translation of the removed `jni/base/SynthesisCore`; 35 + 9 host tests | Flux copyright only; NOTICE §4 | **Done** — this is the sole production telemetry implementation. The legacy reader is deleted, and its absence from `fluxd` is proven per ABI by `.github/scripts/verify-native-telemetry.sh` | Eligible |
 | `jni/engine/execution/*` | **Flux V2 Execution Engine** — capability registry, value/path validator, planner, transactional apply with verify/rollback/idempotency, restoration, bounded apply history | A | Flux-authored from Linux sysfs semantics + Flux safety requirements; injectable node backend; 16 host tests | Flux copyright only; NOTICE §4 | Supersedes the legacy profile applier once the runtime is migrated onto it (migration in progress) | Eligible |
 | `jni/include/*.hpp` (`Flux.hpp`, `FluxLog.hpp`, `ModuleProperty.hpp`, `ShellUtility.hpp`, `SignalHandler.hpp`, `Write2File.hpp`) | Shared daemon headers/utilities | C | Adapted from Encore headers | Dual header; NOTICE §1 | Pending | Ships under Apache-2.0 with attribution |
-| `jni/base/SynthesisCore/*` | SynthesisCore telemetry integration (decode/consume snapshots) | A | Flux-authored; Flux-only copyright header; consumes the SynthesisCore v2 contract that Encore has no equivalent of | Flux copyright only; NOTICE §4 | N/A (already independent) | Eligible |
+| ~~`jni/base/SynthesisCore/*`~~ (removed) | Legacy SynthesisCore telemetry integration (JSON cache reader) | A — **retired** | Was Flux-authored, but superseded by `jni/engine/telemetry/`. Keeping two telemetry readers compiled meant two sources of truth and a fallback that could silently re-take the runtime | n/a (removed) | **Done** — deleted in the Stage 1 telemetry cutover along with `SynthesisCoreReader` and the `synthesis_core_cache`. Its absence from the production build is proven by object-manifest, archive and binary-symbol checks, not by grep | n/a (not built, not shipped) |
 | `jni/base/LockFile/*` | Single-instance / duplicate-daemon lock | A | **Resolved:** reimplemented independently on Linux OFD locks (`fcntl(F_OFD_SETLK)`); Apache-2.0/Flux header; 12 host tests | Flux copyright only; NOTICE §4 | Replaced (was Category D) | Eligible |
-| `jni/tests/*` (`TelemetryParserTest`, `ProfilePolicyTest`, `InotifyIntegrationTest`, `TestFramework.hpp`, `run_tests.sh`, stubs) | Host-side unit/integration tests | A | Flux-authored; Flux-only header; no Encore counterpart | Flux copyright only; NOTICE §4 | N/A | Eligible |
+| `jni/tests/*` (`TelemetryPipelineTest`, `TelemetryRuntimeTest`, `DecisionEngineTest`, `DecisionVectorsTest`, `ExecutionEngineTest`, `ZenControllerTest`, `RuntimeIntegrationTest`, `InotifyIntegrationTest`, `TestFramework.hpp`, `run_tests.sh`, stubs) | Host-side unit/integration tests | A | Flux-authored; Flux-only header; no Encore counterpart | Flux copyright only; NOTICE §4 | The Encore-derived `ProfilePolicyTest`/`TelemetryParserTest` and the `DecisionParityTest` harness were removed with the implementations they tested; `DecisionVectorsTest` replaces the parity harness with golden behavioural vectors that no longer execute legacy code | Eligible |
 | `scripts/flux_profiler.sh`, `scripts/flux_utility.sh` | Profiler and utility shell entry points | C | Adapted from Encore `encore_profiler` / `encore_utility` | Dual header; NOTICE §1 | Pending | Ships under Apache-2.0 with attribution |
 | `scripts/fetch-synthesiscore.sh`, `scripts/verify-synthesiscore.sh`, `scripts/update-synthesiscore-lock.sh` | SynthesisCore dependency fetch/verify/lock tooling | A | Flux-authored; no Encore analogue | Flux copyright | N/A | Eligible |
 | `module/*.sh` (`action`, `cleanup`, `customize`, `service`, `uninstall`, `verify`) | Magisk/KernelSU/APatch module lifecycle scripts | C | Adapted from Encore module scripts; operational branding (paths, process names) changed encore→flux | Dual header; NOTICE §1 | Pending | Ships under Apache-2.0 with attribution; operational branding is Flux-owned |
@@ -70,6 +70,65 @@ screen, audio, integer zen mode) plus a foreground *fallback*. Foreground /
 process-lifecycle detection moves to the Flux-native `ProcessEventSource` in a
 later phase. SynthesisCore must not become a monolithic process-monitoring or
 policy service. See ADR 0001.
+
+## Migration status
+
+### Stage 1 — telemetry cutover: **complete**
+
+Flux V2 telemetry is the **sole production telemetry implementation**. The legacy
+implementation is not deprecated, not disabled, and not retained behind a flag — it is
+deleted, and nothing links it.
+
+What Stage 1 delivered, in order:
+
+1. **Live cutover.** `TelemetryRuntime` is constructed and owned by the daemon and is the only
+   telemetry authority. `Profiler` no longer owns a cache; it reads through an injected
+   provider, so a second telemetry path cannot reappear without changing an explicit seam.
+2. **Legacy removal.** `jni/base/SynthesisCore/*`, `ProfilePolicy.cpp`, the parity harness and
+   the tests of the removed implementation are gone. No hidden fallback survives: there is no
+   runtime path that reads the old JSON cache.
+3. **Proof.** Build, link and package evidence rather than source-tree assertions (below).
+
+**Behaviour is retained, not re-derived.** The removed `ProfilePolicyTest` /
+`TelemetryParserTest` / `DecisionParityTest` are replaced by `DecisionVectorsTest` — golden
+vectors whose expected values were captured from the V2 engine *while the parity harness was
+still green*, i.e. the behaviour both implementations agreed on. The suite went from 175 to 127
+tests; the entire reduction is tests *of the deleted implementation*, and every behaviour they
+covered is still asserted.
+
+### How the cleanliness claim is proven
+
+Grep cannot prove what is in a binary, so the claim rests on the build's own artifacts. Each
+layer is independent and fails the build on its own
+(`.github/workflows/telemetry-proof.yml`):
+
+| Evidence | Script | Proves |
+| --- | --- | --- |
+| Object manifest, archive members, binary symbol table, link identity | `.github/scripts/verify-native-telemetry.sh` | Every V2 component is linked into `fluxd` on every ABI; no legacy object, archive or symbol exists anywhere in the build; the stripped binary that ships is the same link output the symbols were proven on (build-id) |
+| Flashable ZIP contents | `.github/scripts/verify-package.sh` | Expected ABIs; no build/source artifacts or key material; required attribution ships; the bundled APK is the pinned bytes; no Encore operational asset; no release output baked into the module |
+| Pinned artifact metadata | `.github/scripts/verify-schema-provenance.sh` | The APK was built from the commit the lock names (read from the APK's own embedded build metadata, not its filename); it carries the complete v2 wire contract; the decoder requires v2 and admits no v1 |
+
+Two deliberate limits are documented in the scripts themselves rather than glossed over:
+`TelemetryStore` is header-only, so it is proven structurally through its owner instead of by a
+symbol that inlining may legitimately erase; and the literal `SCHEMA_VERSION` constant is not
+read out of the dex, because R8 inlines Kotlin `const val` into its call sites and leaves
+nothing reliable to read.
+
+### Scope — what Stage 1 is *not*
+
+The Flux V2 rewrite as a whole is **not** complete. Stage 1 replaced the telemetry
+implementation only. Still outstanding, and still Category C:
+
+- **Stage 2 — Execution Engine live cutover.** `jni/engine/execution/` is written and tested
+  (17 host tests) but the daemon still applies profiles through the legacy Encore-derived
+  profiler path.
+- Runtime Supervisor, Configuration Store, Diagnostics channel, Update Service (ADR 0002),
+  Flux Console WebUI, and the Flux-native `ProcessEventSource` (ADR 0001).
+
+The **provider-neutral foreground abstraction is retained for that future work**:
+`RuntimeSnapshotAssembler::select_foreground(native, raw)` already prefers a native source and
+falls back to SynthesisCore, so ADR 0001's `ProcessEventSource` can be introduced without
+touching the decision path.
 
 ## Open compliance items (must close before declaring V2 independence)
 

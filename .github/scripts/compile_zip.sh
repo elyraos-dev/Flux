@@ -28,7 +28,18 @@ sed -i "s|updateJson=.*|updateJson=https://github.com/$GITHUB_REPOSITORY/release
 
 # Copy module files
 cp -r ./libs module
-cp -r ./scripts/* module/system/bin
+
+# Only the device runtime scripts ship. scripts/ also holds CI/development tooling
+# (fetch-synthesiscore, verify-synthesiscore, update-synthesiscore-lock) which has no meaning on
+# a device: customize.sh never installs it, so copying everything only padded the zip with dead
+# tooling. This is an allowlist on purpose — a new script has to be named here to ship, rather
+# than reaching users because it happened to land in the directory.
+for runtime_script in flux_profiler flux_utility; do
+	cp "./scripts/${runtime_script}.sh" module/system/bin/ || {
+		echo "Missing runtime script: scripts/${runtime_script}.sh" >&2
+		exit 1
+	}
+done
 cp gamelist.txt module
 cp LICENSE module
 cp NOTICE.md module

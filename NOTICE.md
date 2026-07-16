@@ -30,8 +30,9 @@ The following areas of the current Flux distribution contain code, scripts,
 data, module structure, or WebUI expression that is adapted from Encore Tweaks
 and remains under Apache-2.0 while that derived material is present:
 
-  - the native daemon and supporting modules under `jni/` (excluding the
-    SynthesisCore integration and `jni/tests/`, which are Flux-authored);
+  - the native daemon and supporting modules under `jni/` (excluding the Flux V2
+    engine under `jni/engine/` and the host tests under `jni/tests/`, which are
+    Flux-authored);
   - the profiler and utility shell scripts under `scripts/`;
   - the Magisk/KernelSU/APatch module scripts under `module/`;
   - the WebUI application under `webui/src/`;
@@ -88,8 +89,9 @@ The following are original Flux work and are not derived from Encore Tweaks:
     value/path validator, planner, and transactional verified/rollback-aware
     apply;
   - the OFD-lock process-lock implementation (`jni/base/LockFile/`);
-  - SynthesisCore (the telemetry provider consumed by Flux) and the SynthesisCore
-    integration layer (`jni/base/SynthesisCore/`);
+  - SynthesisCore, the telemetry provider consumed by Flux (its integration layer
+    now lives in `jni/engine/telemetry/`, above; the former
+    `jni/base/SynthesisCore/` reader has been removed);
   - the daemon host-side tests (`jni/tests/`) and the SynthesisCore dependency
     tooling (`scripts/*synthesiscore*`).
 
