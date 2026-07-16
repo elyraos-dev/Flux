@@ -79,6 +79,7 @@ SOURCES=(
     "${SCRIPT_DIR}/TelemetryPipelineTest.cpp"
     "${SCRIPT_DIR}/ExecutionEngineTest.cpp"
     "${SCRIPT_DIR}/ZenControllerTest.cpp"
+    "${SCRIPT_DIR}/TelemetryRuntimeTest.cpp"
     "${SCRIPT_DIR}/RuntimeIntegrationTest.cpp"
     # Production sources, compiled as-is. Not copies.
     "${JNI_DIR}/base/SynthesisCore/SynthesisCore.cpp"
@@ -92,6 +93,7 @@ SOURCES=(
     "${JNI_DIR}/engine/telemetry/RuntimeSnapshotAssembler.cpp"
     "${JNI_DIR}/engine/telemetry/AtomicStatusWatcher.cpp"
     "${JNI_DIR}/engine/telemetry/TelemetryIngestor.cpp"
+    "${JNI_DIR}/engine/telemetry/TelemetryRuntime.cpp"
     "${JNI_DIR}/engine/execution/ExecutionEngine.cpp"
     "${JNI_DIR}/engine/execution/ZenController.cpp"
 )
