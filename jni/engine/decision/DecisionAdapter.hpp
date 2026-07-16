@@ -43,7 +43,9 @@
  *    Diagnostics phase). At that point Main.cpp consumes `flux::engine::Decision`
  *    directly and this file, plus the legacy ProfilePolicy types, go away.
  *  - **No new feature development happens here.** It only translates.
- *  - **Tested:** the translation is covered by host tests (parity harness).
+ *  - **Tested:** the translation is covered by host tests. The parity harness that once
+ *    executed the legacy policy as a live reference is gone with that policy; behaviour is
+ *    now pinned by the golden vectors in `DecisionVectorsTest`.
  */
 class FluxDecisionService {
 public:
