@@ -66,8 +66,43 @@ enum class TransitionReason {
     ShutdownRequested,
 };
 
-const char *transition_reason_string(TransitionReason reason);
-const char *profile_mode_string(FluxProfileMode mode);
+// Inline because this header no longer has a translation unit: the legacy ProfilePolicy engine
+// was deleted, taking ProfilePolicy.cpp with it, and these two are pure enum-to-string helpers
+// used by the daemon's logging and records rather than anything policy-related.
+inline const char *transition_reason_string(TransitionReason reason) {
+    switch (reason) {
+        case TransitionReason::None: return "none";
+        case TransitionReason::Startup: return "startup";
+        case TransitionReason::GameStarted: return "game_started";
+        case TransitionReason::GameEnded: return "game_ended";
+        case TransitionReason::ThermalPressure: return "thermal_pressure";
+        case TransitionReason::ThermalEmergency: return "thermal_emergency";
+        case TransitionReason::ThermalRecovered: return "thermal_recovered";
+        case TransitionReason::BatterySaverEnabled: return "battery_saver_enabled";
+        case TransitionReason::BatterySaverDisabled: return "battery_saver_disabled";
+        case TransitionReason::ScreenOff: return "screen_off";
+        case TransitionReason::ScreenOn: return "screen_on";
+        case TransitionReason::TelemetryStale: return "telemetry_stale";
+        case TransitionReason::TelemetryOffline: return "telemetry_offline";
+        case TransitionReason::TelemetryRestored: return "telemetry_restored";
+        case TransitionReason::ChargingStateChanged: return "charging_state_changed";
+        case TransitionReason::ConfigurationReloaded: return "configuration_reloaded";
+        case TransitionReason::UserOverride: return "user_override";
+        case TransitionReason::ShutdownRequested: return "shutdown_requested";
+    }
+    return "unknown";
+}
+
+inline const char *profile_mode_string(FluxProfileMode mode) {
+    switch (mode) {
+        case PERFCOMMON: return "perfcommon";
+        case PERFORMANCE_PROFILE: return "performance";
+        case PERFORMANCE_LITE_PROFILE: return "performance_lite";
+        case BALANCE_PROFILE: return "balance";
+        case POWERSAVE_PROFILE: return "powersave";
+    }
+    return "unknown";
+}
 
 
 
