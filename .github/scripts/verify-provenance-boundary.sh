@@ -169,6 +169,53 @@ for f in $(find "${ENGINE_DIR}" -name '*.cpp' -o -name '*.hpp' | sort); do
 done
 green "  no legacy shell dependency or subprocess call in ${ENGINE_DIR}"
 
+# ── 6. The planning path cannot write ────────────────────────────────────────
+head2 "6. Intent mapping and dry-run planning are inert"
+# The dry run's entire value is that it can be computed without touching the device. That is
+# only true while the planner has no way to write, so this proves the property structurally
+# rather than trusting the planner to keep choosing not to.
+#
+# The planner holds a `const CapabilityProbe &`, and the probe reads. Nothing in these four
+# files may reach a mutating backend call, because a plan that can write is not a plan.
+PLANNING_SOURCES="PolicyIntent.hpp PolicyIntent.cpp DryRunPlanner.hpp DryRunPlanner.cpp"
+MUTATING_CALLS=("write_checked" "probe_writable" "fchmod" "chmod" "::write" "O_WRONLY" "O_RDWR" "O_CREAT")
+for base in ${PLANNING_SOURCES}; do
+	f="${ENGINE_DIR}/${base}"
+	if [ ! -f "${f}" ]; then
+		fail "${f} is missing — the planning path must exist to be proven inert"
+		continue
+	fi
+	stripped="$(sed -E 's://.*$::' "${f}" | sed -E '/^\s*\*/d' | sed -E 's:/\*.*\*/::')"
+	for call in "${MUTATING_CALLS[@]}"; do
+		if grep -qF -- "${call}" <<<"${stripped}"; then
+			fail "${f} references '${call}' — planning must never be able to mutate a device node"
+		fi
+	done
+done
+green "  no mutating backend call reachable from intent mapping or dry-run planning"
+
+# ── 7. Intents name outcomes, not nodes ──────────────────────────────────────
+head2 "7. PolicyIntent carries no device paths"
+# The split that makes the vendor boundary hold: intents say *what* should be true, descriptors
+# say *which node* expresses it. The moment an intent hard-codes a path, policy has learned a
+# device again and the Category C isolation is decorative.
+INTENT_FILES="PolicyIntent.hpp PolicyIntent.cpp"
+for base in ${INTENT_FILES}; do
+	f="${ENGINE_DIR}/${base}"
+	stripped="$(sed -E 's://.*$::' "${f}" | sed -E '/^\s*\*/d' | sed -E 's:/\*.*\*/::')"
+	# A device path inside a string literal. Comments are stripped first because the prose in
+	# these files legitimately explains the rule using the paths it forbids.
+	if grep -qE '"/(sys|proc|dev)/' <<<"${stripped}"; then
+		fail "${f} contains a device path literal — intents name outcomes; only descriptors name nodes"
+	fi
+	for symbol in "CapabilityDescriptor" "DevicePack" "PathPolicy"; do
+		if grep -qF -- "${symbol}" <<<"${stripped}"; then
+			fail "${f} references '${symbol}' — the intent vocabulary must stay independent of any device table"
+		fi
+	done
+done
+green "  intents are expressed as outcomes, with no path literal and no descriptor dependency"
+
 head2 "═══ Result ═══"
 if [ "${FAILURES}" -ne 0 ]; then
 	red "${FAILURES} provenance-boundary violation(s)."
@@ -179,3 +226,4 @@ green "Category A / Category C boundary: INTACT"
 green "  - device packs are data: no I/O, no policy, no backend access"
 green "  - derived data carries copyright, licence, origin, NOTICE and matrix records"
 green "  - the Flux-owned engine depends on no device knowledge and no legacy shell"
+green "  - intent mapping and dry-run planning cannot write, chmod, or name a device path"
