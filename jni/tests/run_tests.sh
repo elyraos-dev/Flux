@@ -77,6 +77,7 @@ SOURCES=(
     "${SCRIPT_DIR}/ExecutionEngineTest.cpp"
     "${SCRIPT_DIR}/ExecutionRuntimeTest.cpp"
     "${SCRIPT_DIR}/RuntimeTuningTest.cpp"
+    "${SCRIPT_DIR}/RuntimeContractTest.cpp"
     "${SCRIPT_DIR}/ZenControllerTest.cpp"
     "${SCRIPT_DIR}/SysfsNodeBackendTest.cpp"
     "${SCRIPT_DIR}/DeviceDescriptorTest.cpp"
