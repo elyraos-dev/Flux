@@ -120,6 +120,20 @@ void signal_daemon_update() {
 }
 
 /**
+ * @brief Tell the execution runtime its capability assumptions may be stale.
+ *
+ * Called by the file watcher when configuration changes. The engine's idempotency cache skips a
+ * write when it believes the value is already in place; that belief was formed under the old
+ * configuration, so it has to be dropped rather than trusted. Also wakes the loop, so the
+ * re-apply happens now instead of on the next tick.
+ */
+void invalidate_execution_capabilities(const char *reason) {
+    if (!execution_runtime) return; // config can change before the runtime exists
+    execution_runtime->invalidate_capabilities(reason);
+    signal_daemon_update();
+}
+
+/**
  * @brief Signal the daemon to stop immediately
  */
 void signal_daemon_stop() {
@@ -448,6 +462,15 @@ static void evaluate_and_apply(DaemonState &state, int64_t now_ms) {
             handle_game_exit(state);
             return; // re-evaluated on the next tick with the session cleared
         }
+    }
+
+    // --- Detect drift -------------------------------------------------------
+    // Something outside Flux may have moved a node Flux verified: another module, a vendor
+    // service, a user with a terminal. The engine's idempotency cache would otherwise skip the
+    // rewrite forever, because it still believes the value is in place. Re-reading only what
+    // Flux actually verified keeps this to a handful of reads per tick.
+    if (const auto drifted = execution_runtime->poll_external_mutation(now_ms); !drifted.empty()) {
+        LOGW("{} capability(ies) changed outside Flux; re-applying", drifted.size());
     }
 
     // --- Apply --------------------------------------------------------------

@@ -1,13 +1,16 @@
 # Execution Engine migration: legacy shell → semantic intents
 
-Status: in progress (Stage 2, Increment 3 — planning only, nothing is executed yet)
+Status: in progress (Stage 2, Increment 4 — **the cutover is live**; legacy file removal is
+Increment 5)
 
 This document records how the legacy `scripts/flux_profiler.sh` behaviour maps onto the V2
 execution engine, and — more importantly — where it deliberately does **not** map. It exists so
 that the eventual cutover can be reviewed as a behaviour change rather than discovered as one.
 
-`flux_profiler.sh` is still the only thing that applies a profile on a real device. Nothing in
-this document is live.
+As of Increment 4 the V2 engine is the only thing that applies a profile. `flux_profiler.sh` is
+still packaged but the daemon cannot invoke it: the dispatchers that called it are gone, and CI
+proves the built binary carries no `flux_profiler` invocation string, no dispatcher symbol, and
+no `system()`/`popen()` import. The script and `Profiler.cpp` are removed in Increment 5.
 
 ## Why this is a re-expression, not a port
 
@@ -25,7 +28,9 @@ The V2 engine splits those jobs and keeps the split enforced in CI
 | Which node expresses it | inline paths | `CapabilityDescriptor` | C (derived, attributed) |
 | Whether it can be done here | `[ -f "$2" ]` at write time | `CapabilityProbe` → `CapabilityState` | A |
 | What would happen | *unknowable until it happened* | `DryRunExecutionPlan` | A |
-| Doing it | `apply()` / `write()` | `SysfsNodeBackend` (Increment 4) | A |
+| Doing it | `apply()` / `write()` | `SysfsNodeBackend`, via `ExecutionEngine` | A |
+| Owning it | nothing | `ExecutionRuntime` (composition root) | A |
+| Claiming it worked | the function returned | `RuntimeProfileState.verified` | A |
 
 Mechanically translating the shell functions would have carried Encore's control flow into
 Category A and collapsed the engine's independence claim. The device knowledge — which node, what
@@ -92,20 +97,53 @@ engine declines to reproduce.
 | 1 | `SysfsNodeBackend`: chmod-aware, allowlisted, verified writes | not called from production |
 | 2 | `CapabilityState`, `DeviceDescriptor`, gated `DevicePacks` | no |
 | 3 | `PolicyIntent`, `DryRunPlanner` — decision → fully specified plan | **no, structurally** |
-| 4 | live atomic cutover behind the plan; legacy path retired after | yes |
+| 4 | composition root, transactional apply, live cutover, zen unification | **yes** |
+| 5 | remove `flux_profiler.sh`, `Profiler.cpp`, and their package entries | — |
 
 Increment 3's inertness is enforced, not intended: `DryRunPlanner` holds a `const CapabilityProbe &`,
 and CI fails the build if the planning sources so much as name `write_checked`, `fchmod`, `O_WRONLY`
 or a `/sys` path literal.
 
-`flux_profiler.sh` remains the live path and is not removed until Increment 4's replacement is
-validated on hardware. Two active write paths must never exist at once, so the legacy path is
-retired in the same change that makes the native one live — not before it, and not long after.
+Two active write paths must never exist at once. Increment 4 removed the legacy dispatchers in the
+same commit that made the native path live — so at no commit were both reachable.
 
-## Open items for Increment 4
+## The live path (Increment 4 onwards)
 
-- Atomic application: an ordered plan that stops at the first critical failure and rolls back.
-- Restoration store: `RollbackStrategy::RestoreOriginal` needs the original values captured at
-  apply time, not at plan time — a plan is a projection and may be stale by the time it runs.
-- Hardware validation for each SoC family before its descriptors leave `PhysicalDeviceRequired`.
-- Retiring `flux_profiler.sh` from `compile_zip.sh` in the same commit the native path goes live.
+```
+RuntimeSnapshot -> FluxDecisionService -> Decision
+  -> IntentMapper      (Decision -> PolicyIntent -> CapabilityIntentSet)
+  -> DryRunPlanner     (intents x probed descriptors -> DryRunExecutionPlan)
+  -> LivePlanCompiler  (revalidate -> immutable ExecutionPlan)
+  -> ExecutionEngine   (preflight -> write -> read-back -> rollback)
+  -> ApplyResult -> RuntimeProfileState (verified)
+```
+
+`ExecutionRuntime` owns all of it. `Main.cpp` routes events into `on_decision()` and reads state
+back out; it writes nothing. There is one `ExecutionEngine`, one `NodeBackend`, one zen write site.
+
+Zen is the exception that proves the shape: it is not a device node — Android exposes it through
+`cmd notification set_dnd` — so it has its own `AndroidZenBackend`. It still goes through the same
+`ZenController`, so it obeys the same rules about capturing and restoring the exact original.
+
+## What Increment 5 removes
+
+- `scripts/flux_profiler.sh` and its `compile_zip.sh` entry.
+- `jni/Profiler.cpp` / `jni/Profiler.hpp` (only the telemetry-provider seam remains, and nothing
+  reads through it any more).
+- The `FLUX_*` profiler environment variables, which existed only for the shell.
+- `set_do_not_disturb(bool)` in `FluxUtility`, now unreferenced.
+
+## Physical-device validation checklist
+
+No SoC family is validated. Every vendor descriptor is `PhysicalDeviceRequired` and writes
+nothing. To promote one family:
+
+1. Confirm each node exists on real hardware of that family and holds the expected format.
+2. Confirm a write is accepted *and* reads back — several vendor nodes accept and ignore.
+3. Confirm the original mode is restored, including on the failure path.
+4. Confirm rollback returns the exact original value.
+5. Only then change that descriptor's `ValidationStatus` to `PhysicalDeviceValidated`, with the
+   device and kernel recorded in the commit.
+
+Until then the honest user-visible result on every device is: generic cpufreq governors applied
+and verified, vendor tuning gated, status reported as capability-limited.
