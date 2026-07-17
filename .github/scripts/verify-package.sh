@@ -186,6 +186,50 @@ for name in fetch-synthesiscore verify-synthesiscore update-synthesiscore-lock; 
 	fi
 done
 
+# ── 4b. No legacy shell apply payload ────────────────────────────────────────
+head2 "4b. Legacy shell applier absent"
+# Read out of the produced ZIP, not out of compile_zip.sh: the packaging script's intent and the
+# package's contents are different facts, and only one of them lands on a device. A stale
+# module/system/bin left over from an earlier build would ship a working copy of the old write
+# path even with the source clean.
+for name in flux_profiler flux_profiler.sh Profiler.cpp Profiler.hpp; do
+	if grep -q "\(^\|/\)${name}$" "${MANIFEST}"; then
+		fail "package ships the removed legacy applier artifact: ${name}"
+		fail "  the V2 ExecutionEngine applies profiles; shipping the shell applier would put a"
+		fail "  runnable copy of the old write path on every device"
+	else
+		green "  absent: ${name}"
+	fi
+done
+
+# ── 4c. The V2 runtime and required assets are still there ───────────────────
+head2 "4c. Required artifacts present"
+# The other half of a deletion increment: proving that what should have gone, went — and that
+# nothing else went with it. A package that is missing the daemon passes every absence check in
+# this file.
+REQUIRED_ENTRIES=(
+	"system/bin/fluxd"
+	"system/bin/flux_utility"
+	"synthesiscore.apk"
+	"customize.sh"
+	"uninstall.sh"
+	"service.sh"
+	"module.prop"
+)
+for entry in "${REQUIRED_ENTRIES[@]}"; do
+	if grep -q "\(^\|/\)${entry##*/}$" "${MANIFEST}"; then
+		green "  present: ${entry}"
+	else
+		fail "package is missing a required artifact: ${entry}"
+	fi
+done
+
+if grep -qE "webroot/.+" "${MANIFEST}"; then
+	green "  present: webroot/ (WebUI assets)"
+else
+	fail "package ships no WebUI assets"
+fi
+
 # ── 5. Pinned SynthesisCore artifact ─────────────────────────────────────────
 head2 "5. Bundled SynthesisCore artifact"
 PKG_APK="${WORK}/pkg/synthesiscore.apk"
