@@ -88,16 +88,26 @@ else
 	fi
 fi
 
-# ── Release and Telegram remain publication-free on a PR ─────────────────────
+# ── Release and Telegram remain publication-free ─────────────────────────────
 head2 "No publication"
-# A belt-and-braces check: the aggregate itself must never be the thing that publishes. It has
-# no tokens, touches no tag, and calls no release or Telegram tooling — asserted by its own
-# source so a future edit that adds one is caught here rather than in a surprise release.
-if grep -qE 'telegram_bot\.sh|gh release|softprops/action-gh-release|createRelease' \
-	"${BASH_SOURCE[0]}"; then
-	fail "the aggregate proof references release or Telegram tooling — it must only verify"
-fi
-green "  the aggregate proof publishes nothing"
+# Check the real condition, not a proxy for it. The risk is that a publishing credential reaches
+# this verify-only step; the direct evidence of that is the credential being *in the environment*
+# at runtime. A source-text scan cannot do this honestly — the scanner has to name the very
+# tokens it forbids, so it matches itself (the same self-reference trap as a "does the code call
+# system()" text search). The runtime environment has no such problem: a token is present or it
+# is not.
+#
+# The proof workflow passes this step only INVENTORY. If a future edit wired a release or
+# Telegram secret into it, one of these would be non-empty and fail here — before it could be
+# used — rather than the check passing because the source happens not to spell a tool's name.
+for secret in TELEGRAM_BOT_TOKEN TELEGRAM_CHAT_ID GITHUB_TOKEN GH_TOKEN; do
+	if [ -n "${!secret:-}" ]; then
+		# Never echo the value.
+		fail "a publishing credential (${secret}) is present in the aggregate step's environment "
+		fail "  — this step must only verify, and must be given nothing it could publish with"
+	fi
+done
+green "  the aggregate step's environment holds no publishing credential"
 
 # ── Summary ──────────────────────────────────────────────────────────────────
 head2 "═══ Stage 2 aggregate ═══"
