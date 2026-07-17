@@ -1,16 +1,20 @@
 # Execution Engine migration: legacy shell → semantic intents
 
-Status: in progress (Stage 2, Increment 4 — **the cutover is live**; legacy file removal is
-Increment 5)
+Status: **complete** (Stage 2, Increment 5 — the legacy shell apply path is deleted)
 
 This document records how the legacy `scripts/flux_profiler.sh` behaviour maps onto the V2
 execution engine, and — more importantly — where it deliberately does **not** map. It exists so
 that the eventual cutover can be reviewed as a behaviour change rather than discovered as one.
 
-As of Increment 4 the V2 engine is the only thing that applies a profile. `flux_profiler.sh` is
-still packaged but the daemon cannot invoke it: the dispatchers that called it are gone, and CI
-proves the built binary carries no `flux_profiler` invocation string, no dispatcher symbol, and
-no `system()`/`popen()` import. The script and `Profiler.cpp` are removed in Increment 5.
+The V2 ExecutionEngine is the **sole** profile-application mechanism. `scripts/flux_profiler.sh`,
+`jni/Profiler.cpp` and `jni/Profiler.hpp` no longer exist; the module does not package or symlink
+the shell applier; and CI proves per ABI that the built binary carries no invocation string, no
+dispatcher symbol, no legacy profiler environment variable, and no `system()`/`popen()` import.
+
+**Do not add tuning by editing a shell script or a dispatcher — there is no longer one to edit.**
+Device tuning is added as a declarative `CapabilityDescriptor` in `jni/device/`, gated behind
+`ValidationStatus` until it is confirmed on real hardware of that family. The mechanism that
+consumes descriptors is Flux-authored and does not change per device.
 
 ## Why this is a re-expression, not a port
 
@@ -28,7 +32,7 @@ The V2 engine splits those jobs and keeps the split enforced in CI
 | Which node expresses it | inline paths | `CapabilityDescriptor` | C (derived, attributed) |
 | Whether it can be done here | `[ -f "$2" ]` at write time | `CapabilityProbe` → `CapabilityState` | A |
 | What would happen | *unknowable until it happened* | `DryRunExecutionPlan` | A |
-| Doing it | `apply()` / `write()` | `SysfsNodeBackend`, via `ExecutionEngine` | A |
+| Doing it | `apply()` / `write()` (deleted) | `SysfsNodeBackend`, via `ExecutionEngine` | A |
 | Owning it | nothing | `ExecutionRuntime` (composition root) | A |
 | Claiming it worked | the function returned | `RuntimeProfileState.verified` | A |
 
@@ -125,13 +129,47 @@ Zen is the exception that proves the shape: it is not a device node — Android 
 `cmd notification set_dnd` — so it has its own `AndroidZenBackend`. It still goes through the same
 `ZenController`, so it obeys the same rules about capturing and restoring the exact original.
 
-## What Increment 5 removes
+## What Increment 5 removed
 
-- `scripts/flux_profiler.sh` and its `compile_zip.sh` entry.
-- `jni/Profiler.cpp` / `jni/Profiler.hpp` (only the telemetry-provider seam remains, and nothing
-  reads through it any more).
+- `scripts/flux_profiler.sh` and its `compile_zip.sh` entry, `customize.sh` extract and symlink.
+- `jni/Profiler.cpp` / `jni/Profiler.hpp`, including a telemetry provider that was assigned and
+  never read.
 - The `FLUX_*` profiler environment variables, which existed only for the shell.
-- `set_do_not_disturb(bool)` in `FluxUtility`, now unreferenced.
+- `set_do_not_disturb(bool)` in `FluxUtility` — it could not express total-silence or alarms-only
+  and rewrote both to priority.
+
+`uninstall.sh` deliberately still removes `flux_profiler`: installs from before the cutover
+created symlinks in `/data/adb/{ksu,ap}/bin`, which live outside the module directory and survive
+a module replacement. `customize.sh` now clears them on upgrade.
+
+## Configuration migration
+
+The legacy dispatchers exported `FLUX_*` variables for the shell to branch on. Deleting them
+removed the only reader of three stored settings, so `flux::execution::RuntimeTuning` migrates
+them into V2 semantics:
+
+| Stored key | Legacy mechanism | V2 outcome |
+| --- | --- | --- |
+| `preferences.disable_tweaks` | `if (disable_tweaks) return;` in each dispatcher | **migrated** — master gate; disabling also restores what Flux changed |
+| `preferences.enforce_lite_mode` | session input | already live |
+| `preferences.use_device_mitigation` | selected the item set | **migrated** — selects the suppression set |
+| `preferences.log_level` | log level | already live |
+| `cpu_governor.balance` | `FLUX_BALANCED_CPUGOV` | **migrated** — `balanced` / `constrained_performance` descriptor values |
+| `cpu_governor.powersave` | `FLUX_POWERSAVE_CPUGOV` | **migrated** — `power_save` descriptor value |
+| `DISABLE_DDR_TWEAK` | `FLUX_DISABLE_DDR_TWEAK` | **migrated** — Memory group suppressed |
+| `NO_PERFORMANCE_CPUGOV` | env guard in the shell | **migrated** — performance governor withheld |
+| `QCOM_NO_GPU_POWERSAVE` | env guard in the shell | **migrated** — capability suppressed |
+| unknown mitigation item | ignored by the shell | **ignored**, with an explicit diagnostic |
+| unknown/unsafe governor | written blindly | **rejected**, default kept, diagnostic logged |
+
+The migration parses old keys; it cannot revive the old write path. A migrated setting becomes a
+*value in a descriptor* or a *capability that is not offered*, and then goes through probe, plan,
+write and read-back like anything else. Migration is not a bypass: it does not make a profile
+active, verification does.
+
+`PolicyIntent` now gives `PowerSave` its own descriptor key. It previously shared `safe` with
+thermal fallbacks, so a power-save profile applied the *balanced* governor — "safe" is what a
+thermal response wants. Wanting a slower phone and needing to shed heat are different asks.
 
 ## Physical-device validation checklist
 
