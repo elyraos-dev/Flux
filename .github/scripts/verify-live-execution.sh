@@ -133,13 +133,32 @@ head2 "3. No shell execution reachable from the daemon"
 # fork/execvp in one audited place. system()/popen() take a shell command line, which is the
 # thing that made an interpolated path dangerous in the first place.
 for banned in "system" "popen"; do
-	# Match an undefined (imported) symbol: "U system". A local symbol containing the word is
-	# not an import of libc's system(3).
-	if grep -qE "^\s+U ${banned}$" <<<"${SYMBOLS}"; then
+	# Match an undefined (imported) symbol: "U system". A local symbol merely containing the
+	# word is not an import of libc's system(3), so the name must stand alone.
+	#
+	# The trailing (@\S+)? is load-bearing. Symbol versioning appends the version to the name —
+	# glibc prints "U system@GLIBC_2.17" — so an anchored "U system$" silently matches nothing
+	# and the check passes for every binary ever built, including one that does call system().
+	# Bionic does not usually version these, which is exactly why this could sit here looking
+	# green forever. A check that cannot fail is worse than no check: it is a false assurance.
+	if grep -qE "^[[:space:]]+U ${banned}(@\S+)?$" <<<"${SYMBOLS}"; then
 		fail "the binary imports ${banned}() — the daemon can still run a shell command line"
 	fi
 done
 green "  the binary imports neither system() nor popen()"
+
+# Prove the check above can actually fail, on this toolchain, in this job. Otherwise a green
+# result means "no system() import" and "the matcher is broken" equally well, and nobody can
+# tell which. The fixture is a symbol line in exactly the two shapes nm emits.
+for fixture in "                 U system" "                 U system@GLIBC_2.17"; do
+	if ! grep -qE "^[[:space:]]+U system(@\S+)?$" <<<"${fixture}"; then
+		fail "the system() import matcher does not match '${fixture}' — this check is fail-open"
+	fi
+done
+if grep -qE "^[[:space:]]+U system(@\S+)?$" <<<"0000000000001234 T system_of_units"; then
+	fail "the system() import matcher matches a defined local symbol — it would fire on anything"
+fi
+green "  the import matcher is proven to fire on a real import and not on a lookalike"
 
 # ── 4. Exactly one apply entry point in the source ───────────────────────────
 head2 "4. One apply entry point"
