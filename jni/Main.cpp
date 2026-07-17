@@ -35,7 +35,6 @@
 #include "FluxCLI.hpp"
 #include "FluxConfigStore.hpp"
 #include "InotifyHandler.hpp"
-#include "Profiler.hpp"
 #include "Write2File.hpp"
 
 #include <AndroidZenBackend.hpp>         // the single zen write entry point
@@ -667,13 +666,6 @@ int run_daemon() {
         return EXIT_FAILURE;
     }
 
-    // The profiler reads telemetry through the same authority instead of a cache of its own.
-    set_telemetry_provider([]() -> std::optional<flux::telemetry::RawSnapshot> {
-        const auto published = telemetry_runtime->get();
-        if (!published) return std::nullopt;
-        return published->snapshot;
-    });
-
     // --- The live execution runtime ----------------------------------------
     // Constructed after telemetry, because the zen backend reads the live mode through it, and
     // destroyed before it. This is the process's only ExecutionEngine and only NodeBackend.
@@ -773,7 +765,6 @@ int run_daemon() {
     // Stop the watcher and join its worker before the wake descriptor it signals is closed.
     if (telemetry_runtime) {
         telemetry_runtime->stop();
-        set_telemetry_provider(nullptr); // no reads after the authority is gone
     }
 
     if (synthesis_core_event_fd >= 0) {

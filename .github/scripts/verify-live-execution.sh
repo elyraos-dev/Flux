@@ -211,15 +211,79 @@ if grep -qF "set_do_not_disturb" jni/Main.cpp; then
 fi
 green "  no boolean do-not-disturb fallback in the daemon"
 
-# ── 6. The package still ships what it claims ────────────────────────────────
-head2 "6. Packaging"
-# flux_profiler.sh is still packaged in this increment; Increment 5 removes it. That is only
-# acceptable while the daemon provably cannot invoke it — which sections 2 and 3 just proved.
-if grep -q "flux_profiler" .github/scripts/compile_zip.sh; then
-	info "scripts/flux_profiler.sh is still packaged (removed in Increment 5)"
-	info "  the daemon cannot invoke it: proven by sections 2 and 3 above"
+# ── 6. The legacy source is gone and cannot come back ────────────────────────
+head2 "6. Legacy source absence"
+# Increment 5 deleted the shell applier and the dispatcher that called it. These paths must stay
+# gone: a well-meant "just restore the old script for reference" puts a working copy of the old
+# write path on every device, where someone can run it by hand against nodes the V2 engine has
+# never probed.
+LEGACY_FILES=(
+	"scripts/flux_profiler.sh"
+	"jni/Profiler.cpp"
+	"jni/Profiler.hpp"
+)
+for legacy in "${LEGACY_FILES[@]}"; do
+	if [ -e "${legacy}" ]; then
+		fail "${legacy} is back — the legacy apply path was deleted in Increment 5"
+	fi
+done
+green "  no legacy profiler source in the tree"
+
+# The build must not be able to compile it back either.
+if grep -rqE "Profiler\.cpp|flux_profiler" jni/Android.mk jni/*/Android.mk jni/*/*/Android.mk 2>/dev/null; then
+	fail "a build file still references the legacy profiler"
 fi
-green "  packaging is consistent with the cutover"
+green "  no build file references the legacy profiler"
+
+# The profiler-only environment variables existed solely to drive the shell. Nothing may export
+# them: a variable that no longer has a reader is a variable someone will give a reader.
+LEGACY_ENV=(
+	"FLUX_BALANCED_CPUGOV"
+	"FLUX_POWERSAVE_CPUGOV"
+	"FLUX_IS_GKI_KERNEL"
+	"FLUX_THERMAL_API_AVAILABLE"
+	"FLUX_DISABLE_DDR_TWEAK"
+	"set_profiler_env_vars"
+)
+for legacy in "${LEGACY_ENV[@]}"; do
+	if grep -qF -- "${legacy}" <<<"${SYMBOLS}${BINARY_STRINGS}"; then
+		fail "the binary still carries '${legacy}' — a legacy profiler variable survived"
+	fi
+done
+green "  no legacy profiler environment variable in the binary"
+
+# ── 7. The boolean zen path is gone ──────────────────────────────────────────
+head2 "7. No boolean zen conversion"
+# set_do_not_disturb(bool) could not express total-silence or alarms-only and rewrote both to
+# priority. It is deleted; this makes sure it does not reappear as a convenience.
+if grep -qF "set_do_not_disturb" <<<"${SYMBOLS}"; then
+	fail "the binary still exports set_do_not_disturb — the lossy boolean zen path is back"
+fi
+ZEN_BOOL_SOURCES="$(grep -rln "set_do_not_disturb" jni --include='*.cpp' --include='*.hpp' 2>/dev/null || true)"
+if [ -n "${ZEN_BOOL_SOURCES}" ]; then
+	fail "boolean zen helper found in: ${ZEN_BOOL_SOURCES}"
+fi
+green "  no boolean do-not-disturb helper in source or binary"
+
+# ── 8. The package ships what it claims, and nothing it does not ─────────────
+head2 "8. Packaging"
+if grep -qE "^[^#]*flux_profiler" .github/scripts/compile_zip.sh; then
+	fail "compile_zip.sh still packages flux_profiler — the shell applier must not ship"
+fi
+if grep -qE "^[^#]*extract .*flux_profiler|^[^#]*ln -sf .*flux_profiler\"" module/customize.sh; then
+	fail "customize.sh still installs or symlinks flux_profiler"
+fi
+green "  the module does not package or install the legacy shell applier"
+
+# uninstall.sh must still *remove* it: an install from before the cutover created those symlinks
+# outside the module directory, and only uninstall cleans those up. Absence here would strand a
+# dangling symlink on every device that ever ran an older Flux — so this asserts the opposite of
+# the checks above, deliberately.
+if ! grep -q "flux_profiler" module/uninstall.sh; then
+	fail "uninstall.sh no longer removes flux_profiler — upgrades from a pre-V2 install would "
+	fail "  leave a dangling symlink behind"
+fi
+green "  uninstall still cleans up what older installs left behind"
 
 head2 "═══ Result ═══"
 if [ "${FAILURES}" -ne 0 ]; then
@@ -232,3 +296,4 @@ green "  - the daemon links and calls the V2 execution engine"
 green "  - no flux_profiler invocation, dispatcher symbol, system() or popen() in the binary"
 green "  - exactly one apply entry point, and Main.cpp is not it"
 green "  - exactly one zen write entry point, with no boolean fallback"
+green "  - the legacy shell applier is deleted, unbuildable, unpackaged and unexportable"

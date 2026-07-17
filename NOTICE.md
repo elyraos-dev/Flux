@@ -33,7 +33,9 @@ and remains under Apache-2.0 while that derived material is present:
   - the native daemon and supporting modules under `jni/` (excluding the Flux V2
     engine under `jni/engine/` and the host tests under `jni/tests/`, which are
     Flux-authored);
-  - the profiler and utility shell scripts under `scripts/`;
+  - the utility shell script under `scripts/` (`flux_utility.sh`; the profiler shell
+    applier was removed after the V2 execution cutover — its device knowledge is
+    retained, and still attributed, as declarative descriptors under `jni/device/`);
   - the Magisk/KernelSU/APatch module scripts under `module/`;
   - the WebUI application under `webui/src/`;
   - the game-detection data in `gamelist.txt`;
