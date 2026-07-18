@@ -133,11 +133,20 @@ else
 
 	[ "$(prop_value id)" = "flux" ] || fail "module.prop: id must be 'flux', got '$(prop_value id)'"
 
-	# Branding: the name must be Flux's, and must not carry the upstream product's.
-	case "$(prop_value name)" in
-	*Flux*) green "  name: $(prop_value name)" ;;
-	*) fail "module.prop: name does not identify Flux: '$(prop_value name)'" ;;
-	esac
+	# The product name must be exactly "Flux". Not "Flux Tweaks", not "Flux <anything>": the
+	# module identity a package manager displays is the product name, and it has one canonical
+	# form. A substring match (*Flux*) would pass "Flux Tweaks", which is the exact drift this
+	# check exists to catch, so it is an equality test.
+	PROP_NAME="$(prop_value name)"
+	if [ "${PROP_NAME}" = "Flux" ]; then
+		green "  name: Flux"
+	else
+		fail "module.prop: name must be exactly 'Flux', got '${PROP_NAME}'"
+	fi
+	# And the retired name must not reappear anywhere in the generated metadata.
+	if grep -q "Flux Tweaks" "${PROP}"; then
+		fail "module.prop still carries the retired product name 'Flux Tweaks'"
+	fi
 	if grep -qiE '(^|[^a-z])encore([^a-z]|$)' "${PROP}"; then
 		fail "module.prop carries upstream Encore branding"
 	fi

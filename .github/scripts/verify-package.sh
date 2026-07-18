@@ -266,9 +266,22 @@ else
 	VERSION="$(prop version)"
 	VERSION_CODE="$(prop versionCode)"
 	UPDATE_JSON="$(prop updateJson)"
+	NAME="$(prop name)"
+	info "name=${NAME}"
 	info "version=${VERSION}"
 	info "versionCode=${VERSION_CODE}"
 	info "updateJson=${UPDATE_JSON}"
+
+	# The module identity a package manager displays is exactly "Flux". "Flux Tweaks" was the
+	# pre-review name and must not reappear in the packaged metadata.
+	if [ "${NAME}" = "Flux" ]; then
+		green "  name is exactly 'Flux'"
+	else
+		fail "module.prop name must be 'Flux', got '${NAME}'"
+	fi
+	if grep -q "Flux Tweaks" "${PROP}"; then
+		fail "packaged module.prop still carries the retired name 'Flux Tweaks'"
+	fi
 
 	if ! grep -qE '^[0-9]+$' <<<"${VERSION_CODE}"; then
 		fail "versionCode '${VERSION_CODE}' is not an integer; module managers compare it numerically"

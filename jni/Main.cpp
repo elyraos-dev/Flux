@@ -800,11 +800,11 @@ int run_daemon() {
         return EXIT_FAILURE;
     }
 
-    LOGI("Flux Tweaks daemon started");
+    LOGI("Flux daemon started");
     set_module_description_status("\xF0\x9F\x98\x8B Tweaks applied successfully");
     flux_main_daemon();
 
-    LOGW("Flux Tweaks daemon exited");
+    LOGW("Flux daemon exited");
 
     // Stop the watcher and join its worker before the wake descriptor it signals is closed.
     if (telemetry_runtime) {

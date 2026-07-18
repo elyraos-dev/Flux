@@ -1,6 +1,6 @@
 # NOTICE
 
-Flux Tweaks
+Flux
 Copyright (C) 2024-2026 FebriCahyaa
 
 This product includes software developed as part of the Flux project and
